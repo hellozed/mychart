@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'samples/line_chart_sample1.dart';
 import 'samples/line_chart_sample2.dart';
 
-class LineChartPage extends StatelessWidget {
+class LineChartPage1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(

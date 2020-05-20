@@ -5,6 +5,17 @@ import 'bluetooth.dart';
 import 'line_chart/line_chart_page1.dart';
 import 'line_chart/line_chart_page2.dart';
 import 'line_chart/line_chart_page3.dart';
+
+
+import 'google_chart/animation_zoom.dart';            
+import 'google_chart/area_and_line.dart';             
+import 'google_chart/range_annotation.dart';
+import 'google_chart/dash_pattern.dart';              
+import 'google_chart/simple.dart';
+import 'google_chart/line_annotation.dart';           
+import 'google_chart/time_simple.dart';
+
+
 /* ----------------------------------------------------------------------------
  *  
  *  
@@ -55,10 +66,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
       body: PageView(
               children: <Widget>[
-                LineChartPage(),
+                
+                LineAnimationZoomChart.withRandomData(),
+                AreaAndLineChart.withRandomData(),
+                LineRangeAnnotationChart.withRandomData(),
+                DashPatternLineChart.withRandomData(),
+                LineLineAnnotationChart.withRandomData(),
+                SimpleLineChart.withRandomData(),
+
+
+                SimpleTimeSeriesChart.withRandomData(),
+                
+                LineChartPage1(),
                 LineChartPage2(),
                 LineChartPage3(),
                 FlutterBlueApp(),
+                
               ],
             ),
     );
