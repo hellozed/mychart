@@ -1,33 +1,9 @@
 
-Install:
-
-https://flutter.dev/docs/get-started/install/macos
-
-do not delete .git from flutter installation folder
-
-
-
-echo $SHELL
-open $HOME/.zshrc
-    add the line below:
-        export PATH="$PATH:/Users/a123/Documents/flutter/bin"
-source ~/.zshrc
-flutter doctor
-
-flutter create my_app
-cd my_app 
-flutter run
-
-# Vscode extensions needed 
-# "Awesome flutter Snippets", "Dart", "Material Icon Theme"
-
-# packages listed in "pubspec.yaml" can be installed from the command line
-# VScode can install automatically by extensions
-
-flutter packages get
+/* ----------------------------------------------------------------------------
+ *  
+ *  
+ * ----------------------------------------------------------------------------*/
+            
 
 
-
-
-# generate code for widget
-https://flutterstudio.app
+ 
