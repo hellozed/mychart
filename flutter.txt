@@ -1,0 +1,9 @@
+
+Install:
+
+https://flutter.dev/docs/get-started/install/macos
+
+do not delete .git from flutter installation folder
+
+
+
