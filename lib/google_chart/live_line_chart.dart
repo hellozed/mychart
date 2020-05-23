@@ -25,20 +25,7 @@ class LiveLineChart extends StatefulWidget {
 
  
 }
- List <ChartData> data1 = [];
-
- void generateChartData(){
-      if (data1.length>0){
-        print('add one chart sample.');
-        data1.removeAt(0);
-        // each x decrese by 1 to shift the chart left
-        data1.forEach((element) {element.x--;});  
-        // add one time at the end of the right side
-        data1.add(ChartData(data1.length, Random().nextInt(100)));  
-      }
-      else 
-        print('data1 = 0');
-  }
+List <ChartData> data1 = [];
 
 class _LiveLineChartState extends State<LiveLineChart> {
  
@@ -48,14 +35,30 @@ class _LiveLineChartState extends State<LiveLineChart> {
   _LiveLineChartState(){
     // create initial data samples
     int times = initSampleNum;
+    // clear all data, because page could be re-entered
+    data1.clear();
      do{
       data1.add(ChartData(data1.length, Random().nextInt(100)));
       times--;
     } while (times>0);
+
+
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      _buttonPressed();
+    });
+    
   }
  
   void _buttonPressed(){
-      setState(() {
+
+      // do not call setState if app switch to another page
+      // just in case this function called by a timer
+      if (this.mounted==false){  
+        //if (timer.isActive)
+        //  timer.cancel();
+        return;
+      }
+      this.setState(() {
           // remove the first data point on the left  
           data1.removeAt(0);
 
@@ -78,7 +81,12 @@ class _LiveLineChartState extends State<LiveLineChart> {
             data: data1,
           ),
         ];
-    var chart1 = charts.LineChart(series1, animate: animateFlag);
+    var chart1 = charts.LineChart(
+      series1, 
+      animate: animateFlag,
+      /*behaviors: [new charts.PanAndZoomBehavior(),]*/  //turn on the pan znd zoom feature
+      );
+    
     var chartWidget1 = Padding(
           padding: EdgeInsets.all(32.0),
           child: SizedBox(
@@ -87,13 +95,9 @@ class _LiveLineChartState extends State<LiveLineChart> {
           ),
       );
     // ** End ** : These variables must stay in "Widget build" in order to make a dynamic chart
-
     
     // Start the periodic timer which prints something every 1 seconds
-    Timer.periodic(Duration(milliseconds: 500), (timer) {
-      _buttonPressed();
-    });
-  
+    
     return Scaffold(
       body: Center(
         child: Column(
