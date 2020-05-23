@@ -15,6 +15,7 @@ import 'google_chart/simple.dart';
 import 'google_chart/line_annotation.dart';           
 import 'google_chart/time_simple.dart';
 
+import 'google_chart/live_line_chart.dart';
 
 /* ----------------------------------------------------------------------------
  *  
@@ -30,13 +31,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'MyChart',
       theme: ThemeData(
-        
+
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Home ICU'),
     );
   }
 }
@@ -59,13 +60,20 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(   
       appBar: AppBar(
         title: Text(widget.title),
       ),
 
       body: PageView(
               children: <Widget>[
+                
+                LiveLineChart(),
+                /*
+                LineChartPage1(),
+                LineChartPage2(),
+                LineChartPage3(),
+                FlutterBlueApp(),
                 
                 LineAnimationZoomChart.withRandomData(),
                 AreaAndLineChart.withRandomData(),
@@ -76,12 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
                 SimpleTimeSeriesChart.withRandomData(),
-                
-                LineChartPage1(),
-                LineChartPage2(),
-                LineChartPage3(),
-                FlutterBlueApp(),
-                
+                */
               ],
             ),
     );
