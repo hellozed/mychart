@@ -14,6 +14,8 @@ The customized code library/packages are listed in "pubspec.yaml" and can be ins
 
 ## fl_chart: ^0.9.4
 ## flutter_blue: ^0.7.2
+## shared_preferences: '>=0.5.7+3   <2.0.0'
+## the other minor library, refer to pubspec.yaml
 FlutterBlue is a bluetooth plugin for Flutter, a mobile SDK to help developers build modern apps for iOS and Android. [Link](https://pub.dev/packages/flutter_blue)
 
 ## charts_flutter: ^0.9.0

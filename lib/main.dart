@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
+import 'package:device_info/device_info.dart';
 
 
 import 'bluetooth.dart';
 import 'line_chart/line_chart_page1.dart';
+import 'dart:io' show Platform;
 /*
 import 'line_chart/line_chart_page2.dart';
 import 'line_chart/line_chart_page3.dart';
@@ -15,12 +17,13 @@ import 'google_chart/line_annotation.dart';
 import 'google_chart/time_simple.dart';
 */
 import 'google_chart/live_line_chart.dart';
-
+//import 'main1.dart';
+//import 'config.dart';
 /* ----------------------------------------------------------------------------
  *  
  *  
  * ----------------------------------------------------------------------------*/
-void main() {
+void main() {  
   debugPaintSizeEnabled = false;  //Turn this to True if you need debug GUI layout
   runApp(MyApp());
 }
@@ -59,6 +62,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    // print system information to debug port
+    printOsInfo();
     return Scaffold(   
       appBar: AppBar(
         title: Text(widget.title),
@@ -69,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 
                 LiveLineChart(),
                 
+                //ConfigPage(),
                 LineChartPage1(),
                 //LineChartPage2(),
                 //LineChartPage3(),
@@ -85,3 +91,36 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+String deviceName;
+void printOsInfo() async{
+  
+  if (Platform.isAndroid) {
+    var androidInfo = await DeviceInfoPlugin().androidInfo;
+    var release = androidInfo.version.release;
+    var sdkInt = androidInfo.version.sdkInt;
+    var manufacturer = androidInfo.manufacturer;
+    var model = androidInfo.model;
+    print('''Platform information
+      Android release: $release 
+      SDK: $sdkInt
+      Manufacturer: $manufacturer 
+      Model: $model''');
+  }
+
+  if (Platform.isIOS) {
+    var iosInfo = await DeviceInfoPlugin().iosInfo;
+    var systemName = iosInfo.systemName;
+    var version = iosInfo.systemVersion;
+    var name = iosInfo.name;
+    var model = iosInfo.model;
+    print('''Platform information
+      System name: $systemName
+      Version: $version
+      Name: $name 
+      Model: $model''');
+    
+    deviceName = name;  
+  }
+}
+  
