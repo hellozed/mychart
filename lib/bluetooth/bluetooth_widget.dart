@@ -5,6 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+// for print out debug information
+const bool debugBLE = false;
+
 class ScanResultTile extends StatelessWidget {
   const ScanResultTile({Key key, this.result, this.onTap}) : super(key: key);
 
@@ -13,6 +16,7 @@ class ScanResultTile extends StatelessWidget {
 
   Widget _buildTitle(BuildContext context) {
     if (result.device.name.length > 0) {
+      if (debugBLE) print('BLE column');
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,6 +37,7 @@ class ScanResultTile extends StatelessWidget {
   }
 
   Widget _buildAdvRow(BuildContext context, String title, String value) {
+    if (debugBLE) print('BLE AdvRow');
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       child: Row(
@@ -63,6 +68,7 @@ class ScanResultTile extends StatelessWidget {
   }
 
   String getNiceManufacturerData(Map<int, List<int>> data) {
+    if (debugBLE) print('BLE manufactureData');
     if (data.isEmpty) {
       return null;
     }
@@ -78,6 +84,7 @@ class ScanResultTile extends StatelessWidget {
     if (data.isEmpty) {
       return null;
     }
+    if (debugBLE) print('BLE - service data');
     List<String> res = [];
     data.forEach((id, bytes) {
       res.add('${id.toUpperCase()}: ${getNiceHexArray(bytes)}');
@@ -87,6 +94,7 @@ class ScanResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (debugBLE) print('BLE - expand tile');
     return ExpansionTile(
       title: _buildTitle(context),
       leading: Text(result.rssi.toString()),
@@ -129,6 +137,7 @@ class ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (debugBLE) print('BLE - service tile');
     if (characteristicTiles.length > 0) {
       return ExpansionTile(
         title: Column(
@@ -170,6 +179,7 @@ class CharacteristicTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (debugBLE) print('BLE - characteristictile');
     return StreamBuilder<List<int>>(
       stream: characteristic.value,
       initialData: characteristic.lastValue,
@@ -233,6 +243,7 @@ class DescriptorTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (debugBLE) print('BLE - descriptor');
     return ListTile(
       title: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -278,6 +289,7 @@ class AdapterStateTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (debugBLE) print('BLE - adapterState');
     return Container(
       color: Colors.redAccent,
       child: ListTile(

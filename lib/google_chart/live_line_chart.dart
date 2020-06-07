@@ -3,6 +3,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'dart:math';   //for random()
 import 'dart:async';  //for Timer()
+import 'package:mychart/bluetooth/ble.dart';
 /* ----------------------------------------------------------------------------
  * Build a dynamic linear chart 
  * code reference:
@@ -42,6 +43,7 @@ class _LiveLineChartState extends State<LiveLineChart> {
       times--;
     } while (times>0);
 
+    bleTest();//test
 
     Timer.periodic(Duration(milliseconds: 500), (timer) {
       _buttonPressed();

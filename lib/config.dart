@@ -71,7 +71,11 @@ class _ConfigPageState extends State<ConfigPage> {
         configEmail = 'y';
       }
       print('load config and refresh page');
-      setState(() {});
+      if (this.mounted){
+        setState(() {});
+      }
+      else
+        print("error: update before mounted.");
   }
 
   void _saveButton() async {

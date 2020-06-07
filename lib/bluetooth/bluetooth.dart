@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'bluetooth_widget.dart';
 
+// for print out debug information
+const bool debugBLE = false;
 class FlutterBlueApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -20,8 +22,11 @@ class FlutterBlueApp extends StatelessWidget {
           builder: (c, snapshot) {
             final state = snapshot.data;
             if (state == BluetoothState.on) {
+              if (debugBLE) print('BLE is ON');
+              FlutterBlue.instance.startScan(timeout: Duration(seconds: 4));
               return FindDevicesScreen();             //when bluetooth interface is ON
             }
+            if (debugBLE) print('BLE is OFF');
             return BluetoothOffScreen(state: state);  //when bluetooth interface is OFF
           }),
     );
@@ -66,23 +71,17 @@ class FindDevicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Find device'),
-      ),
       body: 
         RefreshIndicator(
-        onRefresh: () =>
-            FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
+        onRefresh: ()=>FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
               StreamBuilder<List<BluetoothDevice>>(
-                stream: Stream.periodic(Duration(seconds: 2))
-                    .asyncMap((_) => FlutterBlue.instance.connectedDevices),
+                stream: Stream.periodic(Duration(seconds: 2)).asyncMap((_) => FlutterBlue.instance.connectedDevices),
                 initialData: [],
                 builder: (c, snapshot) => Column(
-                  children: snapshot.data
-                      .map((d) => ListTile(
+                  children: snapshot.data.map((d) => ListTile(
                             title: Text(d.name),
                             subtitle: Text(d.id.toString()),
                             trailing: StreamBuilder<BluetoothDeviceState>(
@@ -110,13 +109,12 @@ class FindDevicesScreen extends StatelessWidget {
                 stream: FlutterBlue.instance.scanResults,
                 initialData: [],
                 builder: (c, snapshot) => Column(
-                  children: snapshot.data
-                      .map(
+                  children: snapshot.data.map(
                         (r) => ScanResultTile(
                           result: r,
-                          onTap: () => Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (context) {
+                          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) {
                             r.device.connect();
+                            if (debugBLE) print('BLE show 2');//####
                             return DeviceScreen(device: r.device);
                           })),
                         ),
@@ -133,12 +131,14 @@ class FindDevicesScreen extends StatelessWidget {
         initialData: false,
         builder: (c, snapshot) {
           if (snapshot.data) {
+            if (debugBLE) print("floating action1");//debug
             return FloatingActionButton(
               child: Icon(Icons.stop),
               onPressed: () => FlutterBlue.instance.stopScan(),
               backgroundColor: Colors.red,
             );
           } else {
+            if (debugBLE) print("floating action2");//debug
             return FloatingActionButton(
                 child: Icon(Icons.search),
                 onPressed: () => FlutterBlue.instance
@@ -160,6 +160,7 @@ class DeviceScreen extends StatelessWidget {
 
   List<int> _getRandomBytes() {
     final math = Random();
+    if (debugBLE) print('randome');
     return [
       math.nextInt(255),
       math.nextInt(255),
@@ -169,20 +170,21 @@ class DeviceScreen extends StatelessWidget {
   }
 
   List<Widget> _buildServiceTiles(List<BluetoothService> services) {
-    return services
-        .map(
+    if (debugBLE) print('BLE - service tiles');
+    return services.map(
           (s) => ServiceTile(
             service: s,
-            characteristicTiles: s.characteristics
-                .map(
+            characteristicTiles: s.characteristics.map(
                   (c) => CharacteristicTile(
                     characteristic: c,
                     onReadPressed: () => c.read(),
                     onWritePressed: () async {
+                      if (debugBLE) print('BLE read');
                       await c.write(_getRandomBytes(), withoutResponse: true);
                       await c.read();
                     },
                     onNotificationPressed: () async {
+                      if (debugBLE) print('BLE set');
                       await c.setNotifyValue(!c.isNotifying);
                       await c.read();
                     },
@@ -205,6 +207,7 @@ class DeviceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (debugBLE) print('BLE device screen');//####
     return Scaffold(
       appBar: AppBar(
         title: Text(device.name),
@@ -221,6 +224,7 @@ class DeviceScreen extends StatelessWidget {
                   text = 'DISCONNECT';
                   break;
                 case BluetoothDeviceState.disconnected:
+                  if (debugBLE) print('BLE connecting1');//####
                   onPressed = () => device.connect();
                   text = 'CONNECT';
                   break;

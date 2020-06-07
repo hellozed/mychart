@@ -3,8 +3,8 @@ import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
 import 'package:device_info/device_info.dart';
 
 
-import 'bluetooth.dart';
-import 'line_chart/line_chart_page1.dart';
+//import 'bluetooth.dart';
+//import 'line_chart/line_chart_page1.dart';
 import 'dart:io' show Platform;
 /*
 import 'line_chart/line_chart_page2.dart';
@@ -18,7 +18,7 @@ import 'google_chart/time_simple.dart';
 */
 import 'google_chart/live_line_chart.dart';
 //import 'main1.dart';
-//import 'config.dart';
+//import 'config.dart';   
 /* ----------------------------------------------------------------------------
  *  
  *  
@@ -72,13 +72,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: PageView(
               children: <Widget>[
                 
+                //FlutterBlueApp(),
                 LiveLineChart(),
-                
                 //ConfigPage(),
-                LineChartPage1(),
+                //LineChartPage1(),
                 //LineChartPage2(),
                 //LineChartPage3(),
-                //FlutterBlueApp(),
+                
                 /*
                 AreaAndLineChart.withRandomData(),
                 LineRangeAnnotationChart.withRandomData(),
