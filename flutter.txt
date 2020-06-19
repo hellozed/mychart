@@ -6,3 +6,17 @@
             
 https://flutterstudio.app
 https://www.flutterbyexample.com/ 
+
+https://www.statista.com/chart/5824/ios-iphone-compatibility/
+iPhone5s - ios v7~12
+iPhone11 - ios v13
+
+https://www.argenox.com/library/bluetooth-low-energy/using-raspberry-pi-ble/
+
+systemctl status bluetooth
+sudo systemctl start bluetooth 
+• sudo bluetoothctl
+• agent on
+• default-agent
+• scan on
+• pair xx:xx:xx:xx:xx (device id)

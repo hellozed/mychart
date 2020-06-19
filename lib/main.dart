@@ -3,8 +3,8 @@ import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
 import 'package:device_info/device_info.dart';
 
 
-//import 'bluetooth.dart';
-//import 'line_chart/line_chart_page1.dart';
+import 'bluetooth/bluetooth.dart';
+import 'line_chart/line_chart_page1.dart';
 import 'dart:io' show Platform;
 /*
 import 'line_chart/line_chart_page2.dart';
@@ -62,8 +62,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    // print system information to debug port
-    printOsInfo();
+    printOsInfo();  // print system information to debug port
     return Scaffold(   
       appBar: AppBar(
         title: Text(widget.title),
@@ -72,10 +71,10 @@ class _MyHomePageState extends State<MyHomePage> {
       body: PageView(
               children: <Widget>[
                 
-                //FlutterBlueApp(),
+                FlutterBlueApp(),
                 LiveLineChart(),
                 //ConfigPage(),
-                //LineChartPage1(),
+                LineChartPage1(),
                 //LineChartPage2(),
                 //LineChartPage3(),
                 
