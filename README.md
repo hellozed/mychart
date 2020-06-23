@@ -78,3 +78,7 @@ We gave up on "Qt" because this project does not need a desktop app.
 
 ## Python
 Python GUI is easy and cross-platform for desktop, but not a good solution for iOS and Android.
+
+# License
+
+This projectt is open-source and licensed under [MIT License](http://opensource.org/licenses/MIT)

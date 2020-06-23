@@ -1,116 +1,254 @@
-//import 'dart:io';
 import 'package:flutter_blue/flutter_blue.dart';
-//import 'bluetooth_widget.dart';
+import 'dart:async';
+
+
+
+/*
+  FIXME:
+  1. ble device could not be found when hot load again the app
+  current fix: press the "reset" of the device, then "hot load" the appl.
+  electrocardiography
+  
+  2. Stream<List<int>> ecgStream; 
+  
+  3. characteristicUuid: 00002a6e-0000-1000-8000-00805f9b34fb 
+  serviceUuid: 00001809-0000-1000-8000-00805f9b34fb
+  remoteId: 6DF7B035-9A74-F291-67A9-CF8113AA482E 
+  how to change remoteId
+*/
 
 /* ----------------------------------------------------------------------------
- *  reference websites
- *  
- * ----------------------------------------------------------------------------
- * https://github.com/Polidea/FlutterBleLib
- * https://github.com/itavero/flutter-ble-uart
-   specific to UART services and is built on top of flutter_blue
+ * Credit:   
+ * 
+ * The code here is learned from the link below.
+ * 
+ * https://medium.com/flutter-community/flutter-for-bluetooth-devices-5594f105b146
+ * Author's site: https://github.com/MDSADABWASIM  
+ *
+ * Other Reference Websites:
+ * 
  * https://github.com/pauldemarco/flutter_blue
- * https://s0pub0dev.icopy.site/packages/flutter_blue#-example-tab-
  * https://github.com/Polidea/FlutterBleLib
- * https://github.com/pauldemarco/flutter_blue 
+ * https://github.com/itavero/flutter-ble-uart (UART on top of flutter_blue)
+ * 
+ * Andriod:
+ * 
  * https://blog.kuzzle.io/communicate-through-ble-using-flutter  (change for Android)
  * https://juejin.im/post/5b46a6ffe51d45198a2eb221   (Android 蓝牙BLE开发详解)
  * https://www.jianshu.com/p/3a372af38103 (Android BLE 蓝牙开发入门)
  * ----------------------------------------------------------------------------*/
 
 /* ----------------------------------------------------------------------------
- *  
- *  
+ * UUID Define  
+ * Alert: These definition value must be same as "ble.dart" in the Flutter project 
+ * name below Ser = Service, Chr = Characteristic 
  * ----------------------------------------------------------------------------*/
-bool bleInit = false;
-BluetoothDevice bleDevice;
-var sensorCharacteristicUUID = Guid('00002a2b-0000-1000-8000-00805f9b34fb');
-var sensorServiceUUID = Guid('00001805-0000-1000-8000-00805f9b34fb');
-var sensorDeviceName = 'HomeICU';
+var deviceName          =  'HomeICU';  
 
-Future bleTest() async{
+var endUUID             = '-0000-1000-8000-00805f9b34fb';
 
-  if (bleInit == true) return;  
+var heartRateSerUUID    = Guid('0000180D'+endUUID);
+var heartRateChrUUID    = Guid('00002A37'+endUUID);
 
-  print('BLE Init.');
+var sPO2SerUUID         = Guid('00001822'+endUUID);
+var sPO2ChrUUID         = Guid('00002A5E'+endUUID);
 
-  FlutterBlue flutterBlue = FlutterBlue.instance;
+var dataStreamSerUUID   = Guid('00001122'+endUUID);
+var dataStreamChrUUID   = Guid('00001424'+endUUID);
 
-  // Start scanning
-  print('BLE start scan.');
-  await flutterBlue.startScan(timeout: Duration(seconds: 5));
- 
-  // Listen to scan results
-  flutterBlue.scanResults.listen((results) {
-      print('BLE get result.');
-      // do something with scan results
-      for (ScanResult r in results) {
-          print('BLE ${r.device.id} name ${r.device.name}');
-          if (r.device.name==sensorDeviceName){
-            print('${r.device.name} found! rssi: ${r.rssi}');
-            bleInit = true;
-            // Stop scanning
-            flutterBlue.stopScan();
-            print('BLE stop scan.');
-            bleDevice = r.device;
-            break;
-          }
-      }
+var tempSerUUID         = Guid('00001809'+endUUID);
+var tempChrUUID         = Guid('00002a6e'+endUUID);
+
+var batterySerUUID      = Guid('0000180F'+endUUID);
+var batteryChrUUID      = Guid('00002a19'+endUUID);
+
+var hrvSerUUID          = Guid("cd5c7491-4448-7db8-ae4c-d1da8cba36d0");
+var hrvChrUUID          = Guid("01bfa86f-970f-8d96-d44d-9023c47faddc");
+var histChrUUID         = Guid("01bf1525-970f-8d96-d44d-9023c47faddc");
+
+FlutterBlue             flutterBlue;
+BluetoothDevice         bleDevice;            // esp32 board device
+
+int batteryPercent;
+int heartRate;
+int sPO2Percent;
+
+int ecgStream;
+int bodyTemperature;
+int heartRateVariability;
+int respirationRate;
+/* ----------------------------------------------------------------------------
+ *
+ * Phase 1. initialisation and listen to device state
+ * 
+ * ----------------------------------------------------------------------------*/
+void bleInitState() {
+  flutterBlue = FlutterBlue.instance;
+  flutterBlue.state.listen((state) {
+    if (state == BluetoothState.off){
+      print("ble power OFF, you must turn it on");  //Alert user to turn on bluetooth.
+    } else if (state == BluetoothState.on) {
+      print("ble power ON");
+      scanForDevices(); 
+    }
   });
-
-  while (bleInit ==false){
-    //stdout.write('*');  // print out one * witout change to the next line
-    print('*');
-    await new Future.delayed(const Duration(seconds : 1));
-  }
- 
-  if (bleDevice!=null){
-    print('BLE connect to : ${bleDevice.name}.');
-    
-    // Connect to the device
-    await bleDevice.connect();
-
-    // Discover services
-    List <BluetoothService> services = await bleDevice.discoverServices();
-    services.forEach((service) {
-      // do something with service
-      print('service uuid: ${service.uuid} ');
-      
-      if (service.uuid == sensorServiceUUID){
-        print('2a2b service found!');
-
-        // Reads all characteristics
-        var characteristics = service.characteristics;
-        for(BluetoothCharacteristic c in characteristics) {
-          //print('characteristic uuid: ${c.uuid} ');
-          if ( c.uuid == sensorCharacteristicUUID){
-            print('0185 characteristics 0185 found!');
-
-            //Set notifications and listen to changes 
-            c.setNotifyValue(true);
-            c.value.listen((value) {
-            // do something with new value
-            print('value = $value');
-            });
-          }
-        }
-      }
-      //List <int> chs =  c.read();
-      //print(value);
-      // Writes to a characteristic
-      //await c.write([0x12, 0x34])
-    });
-  }
-  else 
-    print('BLE null error.');
-  // Disconnect from device
-  //await bleDevice.disconnect();
 }
 
+// Scan and Stop Bluetooth
+void scanForDevices() async {  
+  StreamSubscription<ScanResult>   scanSubscription;
+
+  scanSubscription = flutterBlue.scan(withServices:[batterySerUUID], timeout: Duration(seconds: 5))
+  .listen((scanResult) async {
+    if (scanResult.device.name == deviceName) {
+      await flutterBlue.stopScan();         // stop scan
+      await scanSubscription.cancel();
+
+      print("found device");
+      bleDevice = scanResult.device;        // assign bluetooth device
+      await bleConnectToDevice();
+      
+      bleDevice.state.listen((event) async{ 
+        if (event==BluetoothDeviceState.disconnected){
+            print("Ble disconnect now!");
+            bleConnectToDevice();           // re-connect device
+        }
+        else 
+           print(event);   
+      });
+    }
+  });
+}
+/* ----------------------------------------------------------------------------
+ *
+ * Phanse 2. connect to device
+ * 
+ * ----------------------------------------------------------------------------*/
+Future bleConnectToDevice() async {
+
+  await bleDevice.connect(); 
+
+  // discover, connect, and listen the characteristics
+  await bleDiscoverServices("Battery",  batterySerUUID,   batteryChrUUID,     batteryData);
+  await bleDiscoverServices("HeartRt",  heartRateSerUUID, heartRateChrUUID,   heartRateData);
+  await bleDiscoverServices("SPO2Lev",  sPO2SerUUID,      sPO2ChrUUID,        sPO2chrData);
+  await bleDiscoverServices("ECGData",  dataStreamSerUUID,dataStreamChrUUID,  dataStreamData);
+  await bleDiscoverServices("BodyTem",  tempSerUUID,      tempChrUUID,        temperatureData);
+  await bleDiscoverServices("HeartRV",  hrvSerUUID,       hrvChrUUID,         hrvData);
+  await bleDiscoverServices("HistpRt",  hrvSerUUID,       histChrUUID,        histData);
+}
+
+Future bleDiscoverServices( String msg, Guid serviceUuid, 
+                            Guid characteristicUuid, 
+                            void Function (List<int>)dataProcessing
+                          ) async 
+{  
+  BluetoothCharacteristic result;
+  List<BluetoothService> services = await bleDevice.discoverServices();
+  services.forEach((service) {
+    if (service.uuid == serviceUuid) {
+      service.characteristics.forEach((characteristic){
+        if (characteristic.uuid == characteristicUuid){
+          print("ble $msg connected");
+          result = characteristic;
+          result.setNotifyValue(true);
+          result.value.listen(dataProcessing);
+        } 
+      });
+    }
+  });
+  if (result==null) print("$msg: serverice/characteristic not Found!");
+}
+/* ----------------------------------------------------------------------------
+ *
+ * callback functions for data processing
+ * 
+ * ----------------------------------------------------------------------------*/
+void batteryData    (List<int> data) {  
+  print(data);  //batteryPercent  = data;
+}
+
+void heartRateData  (List<int> data) {  
+  print(data);  //heartRate       = data;
+}
+
+void sPO2chrData    (List<int> data) {  
+  print(data);  //sPO2Percent     = data;
+}
+
+void dataStreamData (List<int> data) {  
+  print(data);  //batteryPercent  = data;
+}
+
+void temperatureData(List<int> data) {  
+  print(data);  //bodyTemperature  = data;
+}
+void hrvData        (List<int> data) {  
+  print(data);  //heartRateVariability = data;
+}
+void histData       (List<int> data) {  
+  print(data);  //respirationRate  = data;
+}
+/* ----------------------------------------------------------------------------
+ * Phase 3.
+ * 
+ * 
+ * ----------------------------------------------------------------------------*/
 /*
-At Link layer: master - slave relationship
-At GAP layer: central - peripheral relationship
-At GATT layer: client - server relationship
+StreamBuilder<List<int>>(stream: listStream,  //here we're using our char's value
+              initialData: [],
+              builder: (BuildContext context, AsyncSnapshot<List<int>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.active) {
+      //In this method we'll interpret received data
+      interpretReceivedData(currentValue);
+      return Center(child: Text('We are finding the data..'));
+    } else {
+        return SizedBox();
+    }
+  },
+);
+
+//Interpret received data from the device
+//SEE WHAT TYPE OF COMMANDS YOUR DEVICE GIVES YOU & WHAT IT MEANS
+
+void interpretReceivedData(String data) async {
+  if (data == "abt_HANDS_SHAKE") {
+    //Do something here or send next command to device
+    sendTransparentData('Hello');
+  } else {
+    print("Determine what to do with $data");
+  }
+}
+/* ----------------------------------------------------------------------------
+ * Phase 4. 
+ * 
+ * Send commands to the device
+ * ----------------------------------------------------------------------------*/
+void sendTransparentData(String dataString) async {
+  
+  List<int> data = utf8.encode(dataString);     //Encoding the string
+  
+  if (bleDeviceState == BluetoothDeviceState.connected){
+  await chr.write(data);
+//await chr.write(_getRandomBytes(), withoutResponse: true);
+//await chr.write([0x12, 0x34])
+  }
+}
+
+In Async Code
+await Future.delayed(Duration(seconds: 1));
+
+In Sync Code
+import 'dart:io';
+sleep(Duration(seconds:1));
+*/
+
+
+/*
+BLE Relationship in different layers
+Link layer:    master  - slave
+GAP layer:     central - peripheral
+GATT layer:    client  - server 
 
 GAP Central/Peripheral - has to do with establishing a link.  A Peripheral can advertise, 
 to let other devices know that it's there, but it is only a Central that can actually send 
@@ -132,66 +270,17 @@ server. Meaning that you cannot have no server, or many servers (if you act as a
 to many peripherals). All GATT clients accessing the GATT Server are able to find the same services
 and characteristics.  
 
+Bluetooth 4.0, Bluetooth 4.1 and Bluetooth 4.2
 
-
-Bluetooth 4.0, Bluetooth 4.1 and Bluetooth 4.2; What's the difference?
-
-Bluetooth 4.0 has new hardware design and software design for low energy use.
-The SIG creates two kinds of device at 4.0 including Bluetooth Smart Ready and Smart.
-Smart Ready is used at most platform such as smart phone or laptop, could support traditional Bluetooth and Bluetooth 4.0 both.
-Bluetooth Smart is only Bluetooth 4.0 device and could not connect with traditional Bluetooth device.
-
-Bluetooth 4.0, its name Bluetooth low energy, means remove some hardware and software capability and redesign the system for low energy device compared to traditional Bluetooth.
-
-Bluetooth 4.1 vs Bluetooth 4.0?
-The job of Bluetooth 4.1 is to drive the ‘Internet of Things’ (Io, namely the thousands of smart, web connected devices – from fridges to toothbrushes – that are expected to enter our lives over the next decade.
-
-1. Coexistence
-
-Bluetooth 4.1 eliminates this by coordinating its radio with 4G automatically so there is no overlap and both can perform at their maximum potential. It's about phone Bluetooth spec.
-
-2. Smart connectivity
-
-Rather than carry a fixed timeout period, Bluetooth 4.1 will allow manufacturers to specify the reconnection timeout intervals for their devices. This means devices can better manage their power and that of the device they are paired to by automatically powering up and down based on a bespoke power plan.
-
-3. Improved Data Transfer
-
-Bluetooth 4.1 devices can act as both hub and end point simultaneously. This is hugely significant because it allows the host device to be cut out of the equation and for peripherals to communicate independently.
-
-Bluetooth 4.2, what's new?
-Why use BLE 4.2 instead of BLE 4.1? The Bluetooth SIG recommends implementing Bluetooth 4.2 in all new designs and requires the same qualification process as all other Bluetooth designs. Devices using Bluetooth Smart will be backward compatible with Bluetooth 4.0 or 4.1 devices that also implement the low energy features. Devices implementing the (BR/EDR) Core Configuration will be backward compatible to all adopted Bluetooth Core versions beginning with 1.1 that also implement Bluetooth BR/EDR.
-
-It means the upgrade may not just F/W upgrade, hardware may also need to change.
-
-The iPhone 5 is using Bluetooth 4.0 [1].
+Bluetooth 4.0 has new hardware design and software design for low energy use. Bluetooth 4.1 is to drive the ‘Internet of Things’ (Io, namely the thousands of smart, web connected devices. Bluetooth 4.1 devices can act as both hub and end point simultaneously. This is hugely significant because it allows the host device to be cut out of the equation and for peripherals to communicate independently.
 
 Using a device that has a newer version would not work unless it is backwards compatible; for instance, if a device you are trying to connect was using Bluetooth 4.2 and needed Data Length Extension (it may, not entirely sure) then it would not work with the iPhone because that is hardware not software limited [2].
-
-IoT Capabilities:
-
-Low-power IP (IPv6/6LoWPAN)
-Bluetooth Smart Internet Gateways (GATT)
-With BLE 4.2 Bluetooth Smart sensors can transmit data over the internet.
-
-Security:
-
-LE Privacy 1.2
-LE Secure Connections
-With new, more power efficient and highly secure features, BLE 4.2 provides additional benefits allowing only trusted owners to track device location and confidently pair devices.
-
-Speed:
-
-250% Faster
-10x More Capacity
-Compared to previous versions, BLE 4.2 enables 250% faster and more reliable over-the-air data transmission and 10x more packet capacity.
-
-
+The iPhone 5      : Bluetooth 4.0
+Raspberry Pi 3B+  : Bluetooth 4.1
 
 
 bluetoothctl
 and enter
 Code: Select all
-
 discoverable on
-
 */

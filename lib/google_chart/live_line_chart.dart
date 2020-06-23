@@ -43,7 +43,7 @@ class _LiveLineChartState extends State<LiveLineChart> {
       times--;
     } while (times>0);
 
-    bleTest();//test
+    bleInitState();//test
 
     Timer.periodic(Duration(milliseconds: 500), (timer) {
       _buttonPressed();
