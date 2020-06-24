@@ -10,6 +10,9 @@ The Base Station uses an iPhone/Android phone/iPad to run a GUI app to display t
 
 The Base Station can upload the data to the remote cloud server and let the doctor view vital sign measurement and ECG charts over the internet.
 
+## The Hardeware
+The sensor board hardware project is hosted at https://github.com/digimint/homeicu.
+
 # Developing Platform
 
 "Mychart" is developed with Flutter and the programming language is Dart. The same copy of source code can support iPhone, iPad, and Android phones.
