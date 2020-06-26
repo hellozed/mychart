@@ -19,6 +19,7 @@ class ChartData {
   ChartData(this.x, this.y);
 }
 
+List <ChartData> liveChartData = [];
 
 class LiveLineChart extends StatefulWidget {
   @override
@@ -26,7 +27,6 @@ class LiveLineChart extends StatefulWidget {
 
  
 }
-List <ChartData> data1 = [];
 
 class _LiveLineChartState extends State<LiveLineChart> {
  
@@ -37,18 +37,20 @@ class _LiveLineChartState extends State<LiveLineChart> {
     // create initial data samples
     int times = initSampleNum;
     // clear all data, because page could be re-entered
-    data1.clear();
+    liveChartData.clear();
      do{
-      data1.add(ChartData(data1.length, Random().nextInt(100)));
+      liveChartData.add(ChartData(liveChartData.length, Random().nextInt(255)));
       times--;
     } while (times>0);
 
-    bleInitState();//test
+    bleInitState(); //FIXME test 
 
-    Timer.periodic(Duration(milliseconds: 500), (timer) {
-      _buttonPressed();
+    Timer.periodic(Duration(milliseconds: 100), (timer) {
+      // do not call setState if app switch to another page
+      // just in case this function called by a timer
+      if (this.mounted)
+        this.setState((){});
     });
-    
   }
  
   void _buttonPressed(){
@@ -62,13 +64,13 @@ class _LiveLineChartState extends State<LiveLineChart> {
       }
       this.setState(() {
           // remove the first data point on the left  
-          data1.removeAt(0);
+          liveChartData.removeAt(0);
 
           // each x decrese by 1 to shift the chart left
-          data1.forEach((element) {element.x--;});  
+          liveChartData.forEach((element) {element.x--;});  
           
           // add one time at the end of the right side
-          data1.add(ChartData(data1.length, Random().nextInt(100)));  
+          liveChartData.add(ChartData(liveChartData.length, Random().nextInt(100)));  
         });
     }
   @override
@@ -80,7 +82,7 @@ class _LiveLineChartState extends State<LiveLineChart> {
             colorFn:   (_, __) => charts.MaterialPalette.blue.shadeDefault,
             measureFn: (ChartData sales, _) => sales.y,
             domainFn:  (ChartData sales, _) => sales.x,
-            data: data1,
+            data: liveChartData,
           ),
         ];
     var chart1 = charts.LineChart(

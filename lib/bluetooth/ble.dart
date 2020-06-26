@@ -1,8 +1,10 @@
+//import 'dart:ffi';
+
 import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
 
-
-
+import 'dart:typed_data'; //for data formatting
+import '../google_chart/live_line_chart.dart';
 /*
   FIXME:
   1. ble device could not be found when hot load again the app
@@ -54,7 +56,8 @@ var sPO2SerUUID         = Guid('00001822'+endUUID);
 var sPO2ChrUUID         = Guid('00002A5E'+endUUID);
 
 var dataStreamSerUUID   = Guid('00001122'+endUUID);
-var dataStreamChrUUID   = Guid('00001424'+endUUID);
+var ecgStreamChrUUID    = Guid('00001424'+endUUID);
+var ppgStreamChrUUID    = Guid('00001425'+endUUID);
 
 var tempSerUUID         = Guid('00001809'+endUUID);
 var tempChrUUID         = Guid('00002a6e'+endUUID);
@@ -74,7 +77,7 @@ int heartRate;
 int sPO2Percent;
 
 int ecgStream;
-int bodyTemperature;
+double bodyTemperature;
 int heartRateVariability;
 int respirationRate;
 /* ----------------------------------------------------------------------------
@@ -129,13 +132,16 @@ Future bleConnectToDevice() async {
   await bleDevice.connect(); 
 
   // discover, connect, and listen the characteristics
-  await bleDiscoverServices("Battery",  batterySerUUID,   batteryChrUUID,     batteryData);
-  await bleDiscoverServices("HeartRt",  heartRateSerUUID, heartRateChrUUID,   heartRateData);
-  await bleDiscoverServices("SPO2Lev",  sPO2SerUUID,      sPO2ChrUUID,        sPO2chrData);
-  await bleDiscoverServices("ECGData",  dataStreamSerUUID,dataStreamChrUUID,  dataStreamData);
-  await bleDiscoverServices("BodyTem",  tempSerUUID,      tempChrUUID,        temperatureData);
-  await bleDiscoverServices("HeartRV",  hrvSerUUID,       hrvChrUUID,         hrvData);
-  await bleDiscoverServices("HistpRt",  hrvSerUUID,       histChrUUID,        histData);
+//FIXME
+
+  await bleDiscoverServices("Battery",  batterySerUUID,   batteryChrUUID,     batteryDataHandler);
+  await bleDiscoverServices("HeartRt",  heartRateSerUUID, heartRateChrUUID,   heartRateDataHandler);
+  await bleDiscoverServices("SPO2Lev",  sPO2SerUUID,      sPO2ChrUUID,        sPO2chrDataHandler);
+  await bleDiscoverServices("BodyTem",  tempSerUUID,      tempChrUUID,        temperatureDataHandler);
+  await bleDiscoverServices("HeartRV",  hrvSerUUID,       hrvChrUUID,         hrvDataHandler);
+  await bleDiscoverServices("HistpRt",  hrvSerUUID,       histChrUUID,        histDataHandler);
+  await bleDiscoverServices("EcgData",  dataStreamSerUUID,ecgStreamChrUUID,   ecgStreamDataHandler);
+  await bleDiscoverServices("PpgData",  dataStreamSerUUID,ppgStreamChrUUID,   ppgStreamDataHandler);
 }
 
 Future bleDiscoverServices( String msg, Guid serviceUuid, 
@@ -164,31 +170,50 @@ Future bleDiscoverServices( String msg, Guid serviceUuid,
  * callback functions for data processing
  * 
  * ----------------------------------------------------------------------------*/
-void batteryData    (List<int> data) {  
-  print(data);  //batteryPercent  = data;
+void batteryDataHandler   (List<int> data) {  
+  print(data);  
 }
 
-void heartRateData  (List<int> data) {  
-  print(data);  //heartRate       = data;
+void heartRateDataHandler (List<int> data) {  
+  print(data);  
 }
 
-void sPO2chrData    (List<int> data) {  
-  print(data);  //sPO2Percent     = data;
+void sPO2chrDataHandler   (List<int> data) {  
+  print(data);   
 }
 
-void dataStreamData (List<int> data) {  
-  print(data);  //batteryPercent  = data;
+void ecgStreamDataHandler (List<int> data) {  
+  data.forEach((element) { 
+    // remove the first data point on the left  
+    liveChartData.removeAt(0);
+
+    // each x decrese by 1 to shift the chart left
+    liveChartData.forEach((element) {element.x--;});  
+    
+    // add one time at the end of the right side
+    liveChartData.add(ChartData(liveChartData.length, element));  
+  });
 }
 
-void temperatureData(List<int> data) {  
-  print(data);  //bodyTemperature  = data;
+void ppgStreamDataHandler (List<int> data) {  
+  print(data);  
 }
-void hrvData        (List<int> data) {  
-  print(data);  //heartRateVariability = data;
+
+void temperatureDataHandler(List<int> data) {  
+  //convert fout-byte list into double float 
+  ByteBuffer  buffer    = new Int8List.fromList(data).buffer;
+  ByteData    byteData  = new ByteData.view(buffer);
+  bodyTemperature = byteData.getFloat32(0, Endian.little);
+
+  //print("Tempe:, ${bodyTemperature.toStringAsFixed(2)}");  //bodyTemperature  = data;
 }
-void histData       (List<int> data) {  
-  print(data);  //respirationRate  = data;
+void hrvDataHandler       (List<int> data) {  
+  print(data);   
 }
+void histDataHandler      (List<int> data) {  
+  print(data);
+}
+
 /* ----------------------------------------------------------------------------
  * Phase 3.
  * 
