@@ -128,90 +128,98 @@ void scanForDevices() async {
  * 
  * ----------------------------------------------------------------------------*/
 Future bleConnectToDevice() async {
-
-  await bleDevice.connect(); 
+  await bleDevice.connect();
 
   // discover, connect, and listen the characteristics
 //FIXME
 
-  await bleDiscoverServices("Battery",  batterySerUUID,   batteryChrUUID,     batteryDataHandler);
-  await bleDiscoverServices("HeartRt",  heartRateSerUUID, heartRateChrUUID,   heartRateDataHandler);
-  await bleDiscoverServices("SPO2Lev",  sPO2SerUUID,      sPO2ChrUUID,        sPO2chrDataHandler);
-  await bleDiscoverServices("BodyTem",  tempSerUUID,      tempChrUUID,        temperatureDataHandler);
-  await bleDiscoverServices("HeartRV",  hrvSerUUID,       hrvChrUUID,         hrvDataHandler);
-  await bleDiscoverServices("HistpRt",  hrvSerUUID,       histChrUUID,        histDataHandler);
-  await bleDiscoverServices("EcgData",  dataStreamSerUUID,ecgStreamChrUUID,   ecgStreamDataHandler);
-  await bleDiscoverServices("PpgData",  dataStreamSerUUID,ppgStreamChrUUID,   ppgStreamDataHandler);
+  await bleDiscoverServices(
+      "Battery", batterySerUUID, batteryChrUUID, batteryDataHandler);
+  await bleDiscoverServices(
+      "HeartRt", heartRateSerUUID, heartRateChrUUID, heartRateDataHandler);
+  await bleDiscoverServices(
+      "SPO2Lev", sPO2SerUUID, sPO2ChrUUID, sPO2chrDataHandler);
+  await bleDiscoverServices(
+      "BodyTem", tempSerUUID, tempChrUUID, temperatureDataHandler);
+  await bleDiscoverServices("HeartRV", hrvSerUUID, hrvChrUUID, hrvDataHandler);
+  await bleDiscoverServices(
+      "HistpRt", hrvSerUUID, histChrUUID, histDataHandler);
+  await bleDiscoverServices(
+      "EcgData", dataStreamSerUUID, ecgStreamChrUUID, ecgStreamDataHandler);
+  await bleDiscoverServices(
+      "PpgData", dataStreamSerUUID, ppgStreamChrUUID, ppgStreamDataHandler);
 }
 
-Future bleDiscoverServices( String msg, Guid serviceUuid, 
-                            Guid characteristicUuid, 
-                            void Function (List<int>)dataProcessing
-                          ) async 
-{  
+Future bleDiscoverServices(String msg, Guid serviceUuid,
+    Guid characteristicUuid, void Function(List<int>) dataProcessing) async {
   BluetoothCharacteristic result;
   List<BluetoothService> services = await bleDevice.discoverServices();
   services.forEach((service) {
     if (service.uuid == serviceUuid) {
-      service.characteristics.forEach((characteristic){
-        if (characteristic.uuid == characteristicUuid){
+      service.characteristics.forEach((characteristic) {
+        if (characteristic.uuid == characteristicUuid) {
           print("ble $msg connected");
           result = characteristic;
           result.setNotifyValue(true);
           result.value.listen(dataProcessing);
-        } 
+        }
       });
     }
   });
-  if (result==null) print("$msg: serverice/characteristic not Found!");
+  if (result == null) print("$msg: serverice/characteristic not Found!");
 }
+
 /* ----------------------------------------------------------------------------
  *
  * callback functions for data processing
  * 
  * ----------------------------------------------------------------------------*/
-void batteryDataHandler   (List<int> data) {  
-  print(data);  
+void batteryDataHandler(List<int> data) {
+  // print(data);
 }
 
-void heartRateDataHandler (List<int> data) {  
-  print(data);  
+void heartRateDataHandler(List<int> data) {
+  // print(data);
 }
 
-void sPO2chrDataHandler   (List<int> data) {  
-  print(data);   
+void sPO2chrDataHandler(List<int> data) {
+  // print(data);
 }
 
-void ecgStreamDataHandler (List<int> data) {  
-  data.forEach((element) { 
-    // remove the first data point on the left  
+void ecgStreamDataHandler(List<int> data) {
+//  print(data);
+}
+
+void ppgStreamDataHandler(List<int> data) {
+  print(data);
+  data.forEach((element) {
+    // remove the first data point on the left
     liveChartData.removeAt(0);
 
     // each x decrese by 1 to shift the chart left
-    liveChartData.forEach((element) {element.x--;});  
-    
+    liveChartData.forEach((element) {
+      element.x--;
+    });
+
     // add one time at the end of the right side
-    liveChartData.add(ChartData(liveChartData.length, element));  
+    liveChartData.add(ChartData(liveChartData.length, element));
   });
 }
 
-void ppgStreamDataHandler (List<int> data) {  
-  print(data);  
-}
-
-void temperatureDataHandler(List<int> data) {  
-  //convert fout-byte list into double float 
-  ByteBuffer  buffer    = new Int8List.fromList(data).buffer;
-  ByteData    byteData  = new ByteData.view(buffer);
+void temperatureDataHandler(List<int> data) {
+  //convert fout-byte list into double float
+  ByteBuffer buffer = new Int8List.fromList(data).buffer;
+  ByteData byteData = new ByteData.view(buffer);
   bodyTemperature = byteData.getFloat32(0, Endian.little);
 
   //print("Tempe:, ${bodyTemperature.toStringAsFixed(2)}");  //bodyTemperature  = data;
 }
-void hrvDataHandler       (List<int> data) {  
-  print(data);   
+
+void hrvDataHandler(List<int> data) {
+  // print(data);
 }
-void histDataHandler      (List<int> data) {  
-  print(data);
+void histDataHandler(List<int> data) {
+  // print(data);
 }
 
 /* ----------------------------------------------------------------------------
@@ -267,7 +275,6 @@ In Sync Code
 import 'dart:io';
 sleep(Duration(seconds:1));
 */
-
 
 /*
 BLE Relationship in different layers
