@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'samples/line_chart_sample6.dart';
+import 'line_chart_sample6.dart';
 
 class LineChartPage3 extends StatelessWidget {
   @override

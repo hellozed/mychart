@@ -1,16 +1,11 @@
 import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'dart:convert'; //utf8.encode
+//import 'package:flutter/foundation.dart'; //listEquals
 //import 'dart:io'; //stdout.write();
 
 import 'dart:typed_data'; //for data formatting
 import '../google_chart/live_line_chart.dart';
-/*
-  FIXME:
-  Stream<List<int>> ecgStream; 
-*/
-
 /* ----------------------------------------------------------------------------
  * Credit:   
  * 
@@ -80,6 +75,8 @@ var hrv2 = new List<int>();
 var ecg2 = new List<int>();
 var ppg2 = new List<int>();
 
+var characteristicsNumber;
+BluetoothCharacteristic chrPPG;
 /* ----------------------------------------------------------------------------
  *
  * Phase 1. initialisation and listen to device state
@@ -139,8 +136,6 @@ void scanForDevices() async {
  * Phanse 2. connect to device
  * 
  * ----------------------------------------------------------------------------*/
-var characteristicsNumber = 0;
-BluetoothCharacteristic chrPPG;
 Future bleConnectToDevice() async {
   await bleDevice.connect();
 
@@ -155,6 +150,7 @@ Future bleConnectToDevice() async {
   ppg2.clear();
 
   // discover, connect, and listen the characteristics
+  characteristicsNumber = 0;
 
   await bleDiscoverServices(
       "Battery", batterySerUUID, batteryChrUUID, batteryDataHandler);
@@ -175,7 +171,7 @@ Future bleConnectToDevice() async {
   while (true) {
     await Future.delayed(Duration(seconds: 1));
     if (characteristicsNumber == 8) {
-      List<int> data = utf8.encode("OK"); 
+      List<int> data = utf8.encode("OK");
       print("ble: found all characteristics");
       chrPPG.write(data);
       break;
@@ -212,15 +208,15 @@ Future bleDiscoverServices(String msg, Guid serviceUuid,
  * 
  * ----------------------------------------------------------------------------*/
 
-bool dataValid(List<int> data, List<int> previousData, String printInfo) {
+bool dataValid(List<int> data, List<int> data2, String printInfo) {
   if (data.length == 0) return false; //received zero data
 
-  bool isEqual = listEquals<int>(data, previousData);
-  if (isEqual) return false; //receive same data again, ignore it
-
-  previousData.clear();
-  previousData.addAll(data);
-
+  /*
+  bool isEqual = listEquals<int>(data, data2);
+    if (isEqual) return false; //receive same data again, ignore it
+  data2.clear();
+  data2.addAll(data);
+  */
   print(printInfo + ": $data");
   return true;
 }
@@ -247,13 +243,12 @@ void temperatureDataHandler(List<int> data) {
   double bodyTemperature;
 
   // esp32 float is 32 bits, app float is 64-bit double
-
   if (dataValid(data, temp2, "temperature")) {
     //convert fout-byte list into double float
     ByteBuffer buffer = new Int8List.fromList(data).buffer;
     ByteData byteData = new ByteData.view(buffer);
     bodyTemperature = byteData.getFloat32(0, Endian.little);
-    //print("body temperature = : ${bodyTemperature.toStringAsFixed(3)}");
+    print("body temperature = : ${bodyTemperature.toStringAsFixed(3)}");
   }
 }
 
@@ -279,17 +274,16 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
     return;
   }
 
-  bool isEqual = listEquals<int>(data, data2);
-  if (isEqual) return; //receive same data again, ignore it
-
-  data2.clear();
-  data2.addAll(data);
-
+  //skip the same data
+  //bool isEqual = listEquals<int>(data, data2);
+  //if (isEqual) return; //receive same data again, ignore it
+  //data2.clear();
+  //data2.addAll(data);
+  
   //remove the last two bytes of serial number, and convert to int16
   var data8 = new Uint8List.fromList(data);
   var data16 = new List.from(data8.buffer.asInt16List(), growable: true);
   data16.removeLast();
-  //print("ppg16+: $data16"); //with serial number
 
   data16.forEach((element) {
     // remove the first data point on the left
@@ -312,54 +306,11 @@ const ppg_tx_size = 10; //
 void ecgStreamDataHandler(List<int> data) {
   //updateGraph(data, ecg2, ecg_tx_size,"ecg", liveChartData);
 }
+
 void ppgStreamDataHandler(List<int> data) {
-  updateGraph(data, ppg2, ppg_tx_size * 2 + 2, "ppg", liveChartData);
+  if (data!=null)
+    ppgStreamController.sink.add(data);
 }
-/* ----------------------------------------------------------------------------
- * Phase 3.
- * 
- * 
- * ----------------------------------------------------------------------------*/
-/*
-StreamBuilder<List<int>>(stream: listStream,  //here we're using our char's value
-              initialData: [],
-              builder: (BuildContext context, AsyncSnapshot<List<int>> snapshot) {
-    if (snapshot.connectionState == ConnectionState.active) {
-      //In this method we'll interpret received data
-      interpretReceivedData(currentValue);
-      return Center(child: Text('We are finding the data..'));
-    } else {
-        return SizedBox();
-    }
-  },
-);
-
-//Interpret received data from the device
-//SEE WHAT TYPE OF COMMANDS YOUR DEVICE GIVES YOU & WHAT IT MEANS
-
-void interpretReceivedData(String data) async {
-  if (data == "abt_HANDS_SHAKE") {
-    //Do something here or send next command to device
-    sendTransparentData('Hello');
-  } else {
-    print("Determine what to do with $data");
-  }
-}
-/* ----------------------------------------------------------------------------
- * Phase 4. 
- * 
- * Send commands to the device
- * ----------------------------------------------------------------------------*/
-
-
-In Async Code
-await Future.delayed(Duration(seconds: 1));
-
-In Sync Code
-import 'dart:io';
-sleep(Duration(seconds:1));
-*/
-
 /*
 BLE Relationship in different layers
 Link layer:    master  - slave
@@ -368,35 +319,18 @@ GATT layer:    client  - server
 
 GAP Central/Peripheral - has to do with establishing a link.  A Peripheral can advertise, 
 to let other devices know that it's there, but it is only a Central that can actually send 
-a connection request to estalish a connection. When a link has been established, the Central
- is sometimes called a Master, while the Peripheral could be called a Slave. In addition to
-the above roles, the Core Specification also defines the roles of an Observer and a Broadcaster. 
-These are basically just non-connecting variants of the Central and Peripheral, in other 
-words devices that just listens for advertisement packages (and possibly send scan responses) 
-or just sends such packages, without ever entering a connection.
+a connection request to estalish a connection. When a link has been established, the Central 
+is sometimes called a Master, while the Peripheral could be called a Slave. 
 
 GATT Server and Client - the Server is the device that contains data, that the Client can read.
 
-However, there is no connection between these roles. Even though it is most common for a Peripheral
-to be a Server and a Central to be a Client, it is perfectly possible to have a Peripheral that 
-is only a Client, or a Central that is both a Server and a Client. 
-
-Bluetooth specification mandates that all Bluetooth Smart devices shall have one and only one GATT 
-server. Meaning that you cannot have no server, or many servers (if you act as a central connected 
-to many peripherals). All GATT clients accessing the GATT Server are able to find the same services
-and characteristics.  
-
 Bluetooth 4.0, Bluetooth 4.1 and Bluetooth 4.2
 
-Bluetooth 4.0 has new hardware design and software design for low energy use. Bluetooth 4.1 is to drive the ‘Internet of Things’ (Io, namely the thousands of smart, web connected devices. Bluetooth 4.1 devices can act as both hub and end point simultaneously. This is hugely significant because it allows the host device to be cut out of the equation and for peripherals to communicate independently.
+Bluetooth 4.0 - low energy use. 
+Bluetooth 4.1 - IoT use (Internet of Things),devices can act as both hub and end point 
+simultaneously. It allows the host device to be cut out of the equation and for 
+peripherals to communicate independently.
 
-Using a device that has a newer version would not work unless it is backwards compatible; for instance, if a device you are trying to connect was using Bluetooth 4.2 and needed Data Length Extension (it may, not entirely sure) then it would not work with the iPhone because that is hardware not software limited [2].
 The iPhone 5      : Bluetooth 4.0
 Raspberry Pi 3B+  : Bluetooth 4.1
-
-
-bluetoothctl
-and enter
-Code: Select all
-discoverable on
 */

@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
 import 'package:device_info/device_info.dart';
-
+import 'dart:io' show Platform;
 
 //import 'bluetooth/bluetooth.dart';
-//import 'line_chart/line_chart_page1.dart';
-import 'dart:io' show Platform;
-/*
-import 'line_chart/line_chart_page2.dart';
+import 'line_chart/line_chart_page1.dart';
 import 'line_chart/line_chart_page3.dart';
 
-import 'google_chart/area_and_line.dart';             
-import 'google_chart/range_annotation.dart';
-import 'google_chart/dash_pattern.dart';              
-import 'google_chart/line_annotation.dart';           
+import 'google_chart/dash_pattern.dart';
 import 'google_chart/time_simple.dart';
-*/
 import 'google_chart/live_line_chart.dart';
+import 'bluetooth/ble.dart';
 //import 'main1.dart';
-//import 'config.dart';   
+//import 'config.dart';
+
 /* ----------------------------------------------------------------------------
  *  
  *  
  * ----------------------------------------------------------------------------*/
-void main() {  
-  debugPaintSizeEnabled = false;  //Turn this to True if you need debug GUI layout
+void main() {
+  debugPaintSizeEnabled =
+      false; //Turn this to True if you need debug GUI layout
   runApp(MyApp());
 }
 
@@ -35,7 +31,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'MyChart',
       theme: ThemeData(
-
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
@@ -43,6 +38,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 /* ----------------------------------------------------------------------------
  *  
  *  
@@ -55,6 +51,7 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
+
 /* ----------------------------------------------------------------------------
  *  
  *  
@@ -62,38 +59,32 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    printOsInfo();  // print system information to debug port
-    return Scaffold(   
+
+    printOsInfo(); // print system information to debug port
+    
+    bleInitState(); // init bluetooth low engergy
+
+    return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-
       body: PageView(
-              children: <Widget>[
-                
-                LiveLineChart(),
-                //FlutterBlueApp(),
-                //ConfigPage(),
-                //LineChartPage1(),
-                //LineChartPage2(),
-                //LineChartPage3(),
-                
-                /*
-                AreaAndLineChart.withRandomData(),
-                LineRangeAnnotationChart.withRandomData(),
-                DashPatternLineChart.withRandomData(),
-                LineLineAnnotationChart.withRandomData(),
-                SimpleTimeSeriesChart.withRandomData(),
-                */
-              ],
-            ),
+        children: <Widget>[
+          //FlutterBlueApp(),
+          //ConfigPage(),
+          LineChartPage1(),
+          LineChartPage3(),
+          LiveLineChart(),
+          DashPatternLineChart.withRandomData(),
+          SimpleTimeSeriesChart.withRandomData(),
+        ],
+      ),
     );
   }
 }
 
 String deviceName;
-void printOsInfo() async{
-  
+void printOsInfo() async {
   if (Platform.isAndroid) {
     var androidInfo = await DeviceInfoPlugin().androidInfo;
     var release = androidInfo.version.release;
@@ -118,8 +109,7 @@ void printOsInfo() async{
       Version: $version
       Name: $name 
       Model: $model''');
-    
-    deviceName = name;  
+
+    deviceName = name;
   }
 }
-  
