@@ -49,6 +49,13 @@ The project needs the "Xcode" for code compiling for iOS, and VSCode for editing
 Online tools for generating code for widget:
 https://flutterstudio.app
 
+## How to build the code
+The modules and libraries used in the project are managed by "pubspec.yaml" file. 
+Open a terminal run, or in the VSCode F1,
+excute the command line below:
+1. "flutter pub get" - install required modules
+2. "flutter run release" - build and install binary to phone
+   
 ## How to run the code
 
 The program entry point is "lib/main.dart".

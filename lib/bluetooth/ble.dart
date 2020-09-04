@@ -1,7 +1,7 @@
 import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
 import 'dart:convert'; //utf8.encode
-//import 'package:flutter/foundation.dart'; //listEquals
+import 'package:flutter/foundation.dart'; //listEquals
 //import 'dart:io'; //stdout.write();
 
 import 'dart:typed_data'; //for data formatting
@@ -64,6 +64,7 @@ var hrvChrUUID = Guid("01bfa86f-970f-8d96-d44d-9023c47faddc");
 var histChrUUID = Guid("01bf1525-970f-8d96-d44d-9023c47faddc");
 
 FlutterBlue flutterBlue; // mobile app
+StreamSubscription<ScanResult> scanSubscription;
 BluetoothDevice bleDevice; // esp32 board device
 
 var heartRate2 = new List<int>();
@@ -82,6 +83,20 @@ BluetoothCharacteristic chrPPG;
  * Phase 1. initialisation and listen to device state
  * 
  * ----------------------------------------------------------------------------*/
+void bleStopScan() async {
+  print("ble: stop scan");
+  if (flutterBlue != null) {
+    await flutterBlue.stopScan();
+    flutterBlue = null;
+  }
+
+  print("ble: cancel subscription");
+  if (scanSubscription != null) {
+    await scanSubscription.cancel();
+    scanSubscription = null;
+  }
+}
+
 void bleInitState() {
   flutterBlue = FlutterBlue.instance;
   flutterBlue.state.listen((state) {
@@ -97,8 +112,6 @@ void bleInitState() {
 
 // Scan and Stop Bluetooth
 void scanForDevices() async {
-  StreamSubscription<ScanResult> scanSubscription;
-
   List<BluetoothDevice> devices = await FlutterBlue.instance.connectedDevices;
   if (devices.length > 0) {
     if (devices[0].name == deviceName) {
@@ -107,28 +120,32 @@ void scanForDevices() async {
     }
   }
 
-  scanSubscription = flutterBlue.scan(
-      withServices: [batterySerUUID],
-      timeout: Duration(seconds: 5)).listen((scanResult) async {
-    if (scanResult.device.name == deviceName) {
-      await flutterBlue.stopScan(); // stop scan
-      await scanSubscription.cancel();
+  //just incase ren-entry
+  if (scanSubscription == null) {
+    print("ble: search homeicu device");
+    scanSubscription = flutterBlue.scan(
+        withServices: [batterySerUUID],
+        timeout: Duration(seconds: 5)).listen((scanResult) async {
+      if (scanResult.device.name == deviceName) {
+        await flutterBlue.stopScan(); // stop scan
+        await scanSubscription.cancel();
 
-      print("ble: found device");
+        print("ble: found device");
 
-      bleDevice = scanResult.device; // assign bluetooth device
+        bleDevice = scanResult.device; // assign bluetooth device
 
-      await bleConnectToDevice();
+        await bleConnectToDevice();
 
-      bleDevice.state.listen((event) async {
-        if (event == BluetoothDeviceState.disconnected) {
-          print("ble: device disconnected");
-          bleConnectToDevice(); // re-connect device
-        } else
-          print(event);
-      });
-    }
-  });
+        bleDevice.state.listen((event) async {
+          if (event == BluetoothDeviceState.disconnected) {
+            print("ble: device disconnected");
+            bleConnectToDevice(); // re-connect device
+          } else
+            print(event);
+        });
+      }
+    });
+  }
 }
 
 /* ----------------------------------------------------------------------------
@@ -211,12 +228,11 @@ Future bleDiscoverServices(String msg, Guid serviceUuid,
 bool dataValid(List<int> data, List<int> data2, String printInfo) {
   if (data.length == 0) return false; //received zero data
 
-  /*
   bool isEqual = listEquals<int>(data, data2);
-    if (isEqual) return false; //receive same data again, ignore it
+  if (isEqual) return false; //receive same data again, ignore it
   data2.clear();
   data2.addAll(data);
-  */
+
   print(printInfo + ": $data");
   return true;
 }
@@ -275,11 +291,11 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
   }
 
   //skip the same data
-  //bool isEqual = listEquals<int>(data, data2);
-  //if (isEqual) return; //receive same data again, ignore it
-  //data2.clear();
-  //data2.addAll(data);
-  
+  bool isEqual = listEquals<int>(data, data2);
+  if (isEqual) return; //receive same data again, ignore it
+  data2.clear();
+  data2.addAll(data);
+
   //remove the last two bytes of serial number, and convert to int16
   var data8 = new Uint8List.fromList(data);
   var data16 = new List.from(data8.buffer.asInt16List(), growable: true);
@@ -300,16 +316,19 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
 }
 
 //these must be same as firmware project
-const ecg_tx_size = 10; //
-const ppg_tx_size = 10; //
+const ecg_tx_size = 10;
+const ppg_tx_size = 10;
 
 void ecgStreamDataHandler(List<int> data) {
   //updateGraph(data, ecg2, ecg_tx_size,"ecg", liveChartData);
 }
 
 void ppgStreamDataHandler(List<int> data) {
-  if (data!=null)
-    ppgStreamController.sink.add(data);
+  if ((data != null) && (ppgStreamController != null)) {
+    if (ppgStreamController.hasListener) {
+      ppgStreamController.sink.add(data);
+    }
+  }
 }
 /*
 BLE Relationship in different layers

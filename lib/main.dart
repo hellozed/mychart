@@ -4,8 +4,6 @@ import 'package:device_info/device_info.dart';
 import 'dart:io' show Platform;
 
 //import 'bluetooth/bluetooth.dart';
-import 'line_chart/line_chart_page1.dart';
-import 'line_chart/line_chart_page3.dart';
 
 import 'google_chart/dash_pattern.dart';
 import 'google_chart/time_simple.dart';
@@ -28,8 +26,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    printOsInfo(); // print system information to debug port
+
     return MaterialApp(
-      title: 'MyChart',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -56,12 +55,9 @@ class MyHomePage extends StatefulWidget {
  *  
  *  
  * ----------------------------------------------------------------------------*/
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
-
-    printOsInfo(); // print system information to debug port
-    
     bleInitState(); // init bluetooth low engergy
 
     return Scaffold(
@@ -72,14 +68,45 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           //FlutterBlueApp(),
           //ConfigPage(),
-          LineChartPage1(),
-          LineChartPage3(),
           LiveLineChart(),
           DashPatternLineChart.withRandomData(),
           SimpleTimeSeriesChart.withRandomData(),
         ],
       ),
     );
+  }
+
+  //------------------------------------------
+  // code below for monitoring app running state
+  //------------------------------------------
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print("app in resumed");
+        bleInitState();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+        print("app in inactive or paused");
+        bleStopScan();
+        break;
+      case AppLifecycleState.detached:
+        print("app in detached");
+        break;
+    }
+  }
+
+  @override
+  initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 }
 
