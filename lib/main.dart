@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
     printOsInfo(); // print system information to debug port
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false, //disable DEBUG mode banner
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -62,9 +63,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title, 
+          style: TextStyle(
+          fontSize: 18.0,
+          ),
+        ),
       ),
-      body: PageView(
+      body: PageView( // install multiple pages
         children: <Widget>[
           //FlutterBlueApp(),
           //ConfigPage(),
@@ -77,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   //------------------------------------------
-  // code below for monitoring app running state
+  // code for monitoring app running state
   //------------------------------------------
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -109,7 +114,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     super.dispose();
   }
 }
-
+//------------------------------------------
+// print system info to debug
+//------------------------------------------
 String deviceName;
 void printOsInfo() async {
   if (Platform.isAndroid) {

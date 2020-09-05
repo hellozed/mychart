@@ -30,11 +30,12 @@ class ChartData {
 
 StreamController<List<int>> ppgStreamController, ecgStreamController;
 List<ChartData> ppgChartData = [], ecgChartData = [];
-List<charts.Series<ChartData, num>> series1 = [];
 
 enum DataSource{ppg, ecg}
 
 StreamBuilder<List<int>> installStreamBuilder(DataSource dataSource) {
+  List<charts.Series<ChartData, num>> series1 = [];
+
   // clear all data, because page could be re-entered
   if (dataSource == DataSource.ppg)
   {
