@@ -310,7 +310,7 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
       element2.x--;
     });
     // add one time at the end of the right side
-    chartData.add(ChartData(liveChartData.length, element));
+    chartData.add(ChartData(ChartDataSize-1, element));
   });
   return;
 }
@@ -320,7 +320,11 @@ const ecg_tx_size = 10;
 const ppg_tx_size = 10;
 
 void ecgStreamDataHandler(List<int> data) {
-  //updateGraph(data, ecg2, ecg_tx_size,"ecg", liveChartData);
+  if ((data != null) && (ecgStreamController != null)) {
+    if (ecgStreamController.hasListener) {
+      ecgStreamController.sink.add(data);
+    }
+  }
 }
 
 void ppgStreamDataHandler(List<int> data) {

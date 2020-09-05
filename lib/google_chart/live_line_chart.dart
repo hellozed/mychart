@@ -18,7 +18,7 @@ import 'dart:async';
 //----------------------------------
 // stream
 //----------------------------------
-const initSampleNum = 100;
+const ChartDataSize = 100;
 const animateFlag = false; //turn on the chart animate
 
 /// Sample linear data type.
@@ -28,23 +28,34 @@ class ChartData {
   ChartData(this.x, this.y);
 }
 
-StreamController<List<int>> ppgStreamController;
-List<ChartData> liveChartData = [];
+StreamController<List<int>> ppgStreamController, ecgStreamController;
+List<ChartData> ppgChartData = [], ecgChartData = [];
+List<charts.Series<ChartData, num>> series1 = [];
 
-StreamBuilder<List<int>> installStreamBuilder() {
-  // create initial data samples
-  int times = initSampleNum;
+enum DataSource{ppg, ecg}
+
+StreamBuilder<List<int>> installStreamBuilder(DataSource dataSource) {
   // clear all data, because page could be re-entered
-  liveChartData.clear();
-  ppgStreamController = new StreamController();
-
-  do {
-    liveChartData.add(ChartData(liveChartData.length, 0));
-    times--;
-  } while (times > 0);
-
+  if (dataSource == DataSource.ppg)
+  {
+    ppgStreamController = new StreamController();
+    ppgChartData.clear();
+    // create initial data samples
+    for (int i = 0; i < ChartDataSize; i++) 
+        ppgChartData.add(ChartData(i, 0));
+  }
+  else
+  {
+    ecgStreamController = new StreamController();
+    ecgChartData.clear();
+    // create initial data samples
+    for (int i = 0; i < ChartDataSize; i++) 
+      ecgChartData.add(ChartData(i, 0));
+  }
+  
   return StreamBuilder(
-      stream: ppgStreamController.stream,
+      stream: (dataSource == DataSource.ppg)?
+              ppgStreamController.stream :ecgStreamController.stream,
       initialData: [],
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         series1 = [
@@ -53,16 +64,18 @@ StreamBuilder<List<int>> installStreamBuilder() {
             colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
             measureFn: (ChartData sales, _) => sales.y,
             domainFn: (ChartData sales, _) => sales.x,
-            data: liveChartData,
+            data: (dataSource == DataSource.ppg)
+                ? ppgChartData
+                : ecgChartData,
           ),
         ];
         if (snapshot.data != null)
-          updateGraph(
-              snapshot.data, ppg2, ppg_tx_size * 2 + 2, "ppg", liveChartData);
+          updateGraph(snapshot.data, ppg2, ppg_tx_size * 2 + 2, "ppg",
+              (dataSource == DataSource.ppg) ? ppgChartData : ecgChartData);
         return new Padding(
           padding: EdgeInsets.all(32.0),
           child: SizedBox(
-            height: 200.0,
+            height: 100.0,
             child: charts.LineChart(
               series1, animate: animateFlag,
               /*behaviors: [new charts.PanAndZoomBehavior(),]*/ //turn on the pan znd zoom feature
@@ -80,12 +93,11 @@ class LiveLineChart extends StatefulWidget {
   _LiveLineChartState createState() => _LiveLineChartState();
 }
 
-List<charts.Series<ChartData, num>> series1 = [];
-
 class _LiveLineChartState extends State<LiveLineChart> {
   @override
   void dispose() {
     ppgStreamController.close();
+    ecgStreamController.close();
     super.dispose();
   }
 
@@ -96,7 +108,8 @@ class _LiveLineChartState extends State<LiveLineChart> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            installStreamBuilder(), // return a StreamBuilder
+            installStreamBuilder(DataSource.ppg), // return a StreamBuilder
+            installStreamBuilder(DataSource.ecg),
           ],
         ),
       ),
