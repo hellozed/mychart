@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
 import 'package:device_info/device_info.dart';
 import 'dart:io' show Platform;
-
-//import 'bluetooth/bluetooth.dart';
-
 import 'google_chart/dash_pattern.dart';
 import 'google_chart/time_simple.dart';
 import 'google_chart/live_line_chart.dart';
 import 'bluetooth/ble.dart';
-//import 'main1.dart';
-//import 'config.dart';
-
+import 'config.dart';
+import 'package:event_bus/event_bus.dart';
 /* ----------------------------------------------------------------------------
  *  
  *  
@@ -63,19 +59,26 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title, 
+        title: Text(
+          widget.title,
           style: TextStyle(
-          fontSize: 18.0,
+            fontSize: 18.0,
           ),
         ),
+        leading: Icon(Icons.menu),
+        actions: <Widget>[
+          IconButton(icon: Icon(Icons.account_circle), onPressed: () => { })
+        ]
       ),
-      body: PageView( // install multiple pages
+
+      body: PageView(
+        // install multiple pages
         children: <Widget>[
           //FlutterBlueApp(),
-          //ConfigPage(),
           LiveLineChart(),
           DashPatternLineChart.withRandomData(),
           SimpleTimeSeriesChart.withRandomData(),
+          ConfigPage(),
         ],
       ),
     );
@@ -114,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     super.dispose();
   }
 }
+
 //------------------------------------------
 // print system info to debug
 //------------------------------------------
@@ -146,4 +150,39 @@ void printOsInfo() async {
 
     deviceName = name;
   }
+}
+
+//------------------------------------------
+// event bus
+//
+// 1. define a event id
+// 2. install a lisener
+// 3. fire a event with id
+//------------------------------------------
+EventBus eventBus = EventBus(); // create an Event Bus
+
+enum MyEventId {
+  bluetoothOff,
+}
+
+class MySystemEvent {
+  MyEventId id;
+  MySystemEvent(this.id);
+}
+
+// install a event listener, when the expected event id received, 
+// then call the event processing function.
+
+void installEventListener(MyEventId id, void Function() eventProcessing) {
+  // register system event listeners
+  eventBus.on<MySystemEvent>().listen((event) {
+    print(event.id);
+    if (event.id ==id)
+      eventProcessing();
+  });
+}
+  
+// call this function to fire an event,
+void fireEvent(MyEventId id) {
+  eventBus.fire(MySystemEvent(id));
 }

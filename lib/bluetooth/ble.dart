@@ -2,10 +2,10 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
 import 'dart:convert'; //utf8.encode
 import 'package:flutter/foundation.dart'; //listEquals
-//import 'dart:io'; //stdout.write();
-
-import 'dart:typed_data'; //for data formatting
 import '../google_chart/live_line_chart.dart';
+//import 'dart:io'; //stdout.write();
+import 'dart:typed_data'; //for data formatting
+import '../main.dart';
 /* ----------------------------------------------------------------------------
  * Credit:   
  * 
@@ -75,6 +75,7 @@ var hist2 = new List<int>();
 var hrv2 = new List<int>();
 var ecg2 = new List<int>();
 var ppg2 = new List<int>();
+VitalNumbers currentVital = VitalNumbers();
 
 var characteristicsNumber;
 BluetoothCharacteristic chrPPG;
@@ -83,26 +84,14 @@ BluetoothCharacteristic chrPPG;
  * Phase 1. initialisation and listen to device state
  * 
  * ----------------------------------------------------------------------------*/
-void bleStopScan() async {
-  print("ble: stop scan");
-  if (flutterBlue != null) {
-    await flutterBlue.stopScan();
-    flutterBlue = null;
-  }
-
-  print("ble: cancel subscription");
-  if (scanSubscription != null) {
-    await scanSubscription.cancel();
-    scanSubscription = null;
-  }
-}
 
 void bleInitState() {
   flutterBlue = FlutterBlue.instance;
   flutterBlue.state.listen((state) {
     if (state == BluetoothState.off) {
-      print(
-          "ble: power OFF, you must turn it on"); // notice user to turn on bluetooth.
+      print("ble: power OFF, you must turn it on");
+      fireEvent(MyEventId.bluetoothOff);
+
     } else if (state == BluetoothState.on) {
       print("ble: power ON");
       scanForDevices();
@@ -148,6 +137,21 @@ void scanForDevices() async {
   }
 }
 
+// when screen is off or switch to non-chart screen, stop ble
+void bleStopScan() async {
+  print("ble: stop scan");
+  if (flutterBlue != null) {
+    await flutterBlue.stopScan();
+    flutterBlue = null;
+  }
+
+  print("ble: cancel subscription");
+  if (scanSubscription != null) {
+    await scanSubscription.cancel();
+    scanSubscription = null;
+  }
+}
+
 /* ----------------------------------------------------------------------------
  *
  * Phanse 2. connect to device
@@ -165,6 +169,7 @@ Future bleConnectToDevice() async {
   hist2.clear();
   ecg2.clear();
   ppg2.clear();
+  currentVital.clear();
 
   // discover, connect, and listen the characteristics
   characteristicsNumber = 0;
@@ -229,54 +234,83 @@ bool dataValid(List<int> data, List<int> data2, String printInfo) {
   if (data.length == 0) return false; //received zero data
 
   bool isEqual = listEquals<int>(data, data2);
-  if (isEqual) return false; //receive same data again, ignore it
-  data2.clear();
-  data2.addAll(data);
+  if (isEqual) {
+    return false; //receive same data again, ignore it
+  } else {
+    data2.clear();
+    data2.addAll(data);
 
-  print(printInfo + ": $data");
-  return true;
+    print(printInfo + ": $data");
+    return true;
+  }
+}
+
+void sendToScreen() {
+  if (numStreamController != null) {
+    if (numStreamController.hasListener)
+      numStreamController.sink.add(currentVital);
+  }
 }
 
 void batteryDataHandler(List<int> data) {
   if (dataValid(data, battery2, "battery")) {
-    // process data here here
+    currentVital.battery = data.last.toInt();
+    sendToScreen();
   }
 }
 
+/* ESP32 code
+heart_rate_pack[0]  = (uint8_t) ecg_heart_rate; 
+heart_rate_pack[1]  = ppg_heart_rate; 
+heart_rate_pack[2]  = ecg_lead_off; 
+*/
 void heartRateDataHandler(List<int> data) {
   if (dataValid(data, heartRate2, "heart rate")) {
-    // process data here here
+    currentVital.heartRate = data[0].toInt();
+    sendToScreen();
   }
 }
 
 void sPO2chrDataHandler(List<int> data) {
   if (dataValid(data, spo2, "spo2")) {
-    // process data here here
+    int t = data.last.toInt();
+    if ((t < 0) && (t > 100)) t = 0;
+    currentVital.sPo2 = t;
+
+    sendToScreen();
   }
 }
 
 void temperatureDataHandler(List<int> data) {
-  double bodyTemperature;
+  double t;
 
   // esp32 float is 32 bits, app float is 64-bit double
   if (dataValid(data, temp2, "temperature")) {
     //convert fout-byte list into double float
     ByteBuffer buffer = new Int8List.fromList(data).buffer;
     ByteData byteData = new ByteData.view(buffer);
-    bodyTemperature = byteData.getFloat32(0, Endian.little);
-    print("body temperature = : ${bodyTemperature.toStringAsFixed(3)}");
+    t = byteData.getFloat32(0, Endian.little);
+
+    print("body temperature = : ${t.toStringAsFixed(3)}");
+
+    if ((t < 0) && (t > 50)) t = 0;
+    currentVital.temperature = t;
+
+    sendToScreen();
   }
 }
 
 void hrvDataHandler(List<int> data) {
   if (dataValid(data, hrv2, "hrv")) {
     // process data here here
+    //FIXME
   }
 }
 
 void histDataHandler(List<int> data) {
   if (dataValid(data, hist2, "hist")) {
     // process data here here
+    //FIXME
   }
 }
 
@@ -310,7 +344,7 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
       element2.x--;
     });
     // add one time at the end of the right side
-    chartData.add(ChartData(ChartDataSize-1, element));
+    chartData.add(ChartData(ChartDataSize - 1, element));
   });
   return;
 }
@@ -321,17 +355,13 @@ const ppg_tx_size = 10;
 
 void ecgStreamDataHandler(List<int> data) {
   if ((data != null) && (ecgStreamController != null)) {
-    if (ecgStreamController.hasListener) {
-      ecgStreamController.sink.add(data);
-    }
+    if (ecgStreamController.hasListener) ecgStreamController.sink.add(data);
   }
 }
 
 void ppgStreamDataHandler(List<int> data) {
   if ((data != null) && (ppgStreamController != null)) {
-    if (ppgStreamController.hasListener) {
-      ppgStreamController.sink.add(data);
-    }
+    if (ppgStreamController.hasListener) ppgStreamController.sink.add(data);
   }
 }
 /*
