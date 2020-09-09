@@ -289,7 +289,7 @@ void temperatureDataHandler(List<int> data) {
     //convert fout-byte list into double float
     ByteBuffer buffer = new Int8List.fromList(data).buffer;
     ByteData byteData = new ByteData.view(buffer);
-    t = byteData.getFloat32(0, Endian.little);
+    t = byteData.getInt16(0, Endian.little)/10;
 
     print("body temperature = : ${t.toStringAsFixed(3)}");
 
@@ -351,7 +351,7 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
 
 //these must be same as firmware project
 const ecg_tx_size = 10;
-const ppg_tx_size = 10;
+const ppg_tx_size =  5;
 
 void ecgStreamDataHandler(List<int> data) {
   if ((data != null) && (ecgStreamController != null)) {

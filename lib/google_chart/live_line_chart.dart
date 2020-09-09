@@ -146,11 +146,11 @@ StreamBuilder<VitalNumbers> numStreamBuilder() {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 
-                myTextBlock(snapshot.data.heartRate.toString(), "HR", 3),
+                myTextBlock(snapshot.data.heartRate.toString(), "HR", 15),
                 myTextBlock(
-                    snapshot.data.temperature.toStringAsFixed(1), "TEMP", 3),
-                myTextBlock(snapshot.data.sPo2.toString(), "SpO2", 3),
-                myBatteryBlock(snapshot.data.battery.toString(), 1),
+                    snapshot.data.temperature.toStringAsFixed(1), "TEMP", 15),
+                myTextBlock(snapshot.data.sPo2.toString(), "SpO2", 15),
+                myBatteryBlock(snapshot.data.battery.toString(), 4),
               ]),
         );
       });
@@ -271,7 +271,7 @@ Expanded myTextBlock(String bigText, String smallText, int myFlex) {
             child: Text(
               bigText.toString(),
               style: TextStyle(
-                fontSize: 50,
+                fontSize: 45,
                 color: myBigTextColor,
                 fontWeight: FontWeight.w600,
               ),
@@ -285,7 +285,7 @@ Expanded myTextBlock(String bigText, String smallText, int myFlex) {
             child: Text(
               smallText.toString(),
               style: TextStyle(
-                fontSize: 30,
+                fontSize: 25,
                 color: mySmallTextColor,
                 fontWeight: FontWeight.w600,
               ),
@@ -307,18 +307,17 @@ Expanded myBatteryBlock(String bigText, int myFlex) {
       alignment: Alignment.center,
 
       child: Stack(
-        alignment: Alignment.center,
+        alignment: Alignment.centerLeft,
         overflow: Overflow.visible,
         fit: StackFit.expand,
         children: <Widget>[
           //big text
           Positioned(
-            top: 5,
-            left: 15,
+            left: 5,
             child: Text(
               (bigText+"%").toString(),
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 20,
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
               ),
@@ -327,12 +326,18 @@ Expanded myBatteryBlock(String bigText, int myFlex) {
 
           //small text
           Positioned(
-            bottom: 5,
             right: 5,
-            child: IconButton(icon: Icon(
-              Icons.battery_full), 
-              color:Colors.grey, 
-              onPressed: () => { }),
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: IconButton(
+                icon: Icon(
+                  Icons.battery_full,
+                  color: Colors.grey,
+                ),
+                onPressed: null,
+              ),
+            ),
+                        
             ),
           
         ],
