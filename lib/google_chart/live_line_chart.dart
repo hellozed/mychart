@@ -92,7 +92,8 @@ class _LiveLineChartState extends State<LiveLineChart> {
 //----------------------------------
 // stream
 //----------------------------------
-const ChartDataSize = 100;
+const ppgChartDataSize = 100;
+const ecgChartDataSize = 125*4;
 const animateFlag = false; //turn on the chart animate
 
 /// Sample linear data type.
@@ -165,14 +166,14 @@ StreamBuilder<List<int>> myStreamBuilder(DataSource dataSource) {
   if (dataSource == DataSource.ppg) {
     ppgStreamController = StreamController();
     ppgChartData.clear();
-    // create initial data samples
-    for (int i = 0; i < ChartDataSize; i++) ppgChartData.add(ChartData(i, 0));
+    // create initial data samples for ppg
+    for (int i = 0; i < ppgChartDataSize; i++) ppgChartData.add(ChartData(i, 0));
   } else {
     ecgStreamController = StreamController();
     ecgChartData.clear();
-    // create initial data samples
-    for (int i = 0; i < ChartDataSize; i++) ecgChartData.add(ChartData(i, 0));
-  }
+    // create initial data samples for ecg
+    for (int i = 0; i < ecgChartDataSize; i++) ecgChartData.add(ChartData(i, 0));
+  } 
 
   return StreamBuilder(
       stream: (dataSource == DataSource.ppg)

@@ -344,7 +344,7 @@ void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
       element2.x--;
     });
     // add one time at the end of the right side
-    chartData.add(ChartData(ChartDataSize - 1, element));
+    chartData.add(ChartData(chartData.length, element));
   });
   return;
 }
