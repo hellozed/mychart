@@ -2,10 +2,12 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
 import 'dart:convert'; //utf8.encode
 import 'package:flutter/foundation.dart'; //listEquals
-import '../google_chart/live_line_chart.dart';
+import '../home.dart';
 //import 'dart:io'; //stdout.write();
 import 'dart:typed_data'; //for data formatting
 import '../main.dart';
+
+
 /* ----------------------------------------------------------------------------
  * Credit:   
  * 
@@ -289,7 +291,7 @@ void temperatureDataHandler(List<int> data) {
     //convert fout-byte list into double float
     ByteBuffer buffer = new Int8List.fromList(data).buffer;
     ByteData byteData = new ByteData.view(buffer);
-    t = byteData.getInt16(0, Endian.little)/10;
+    t = byteData.getInt16(0, Endian.little) / 10;
 
     print("body temperature = : ${t.toStringAsFixed(3)}");
 
@@ -314,44 +316,11 @@ void histDataHandler(List<int> data) {
   }
 }
 
-void updateGraph(List<int> data, List<int> data2, int len, String printInfo,
-    List<ChartData> chartData) {
-  if (data.length == 0) return; //received zero data
 
-  if (data.length < len) {
-    //data len = pack size + 1 serial number
-    print("len=${data.length}, byte missing");
-    return;
-  }
 
-  //skip the same data
-  bool isEqual = listEquals<int>(data, data2);
-  if (isEqual) return; //receive same data again, ignore it
-  data2.clear();
-  data2.addAll(data);
-
-  //remove the last two bytes of serial number, and convert to int16
-  var data8 = new Uint8List.fromList(data);
-  var data16 = new List.from(data8.buffer.asInt16List(), growable: true);
-  data16.removeLast();
-
-  data16.forEach((element) {
-    // remove the first data point on the left
-    chartData.removeAt(0);
-
-    // each x decrese by 1 to shift the chart left
-    chartData.forEach((element2) {
-      element2.x--;
-    });
-    // add one time at the end of the right side
-    chartData.add(ChartData(chartData.length, element));
-  });
-  return;
-}
-
-//these must be same as firmware project
+//these defines must be same as firmware project
 const ecg_tx_size = 10;
-const ppg_tx_size =  5;
+const ppg_tx_size = 5;
 
 void ecgStreamDataHandler(List<int> data) {
   if ((data != null) && (ecgStreamController != null)) {

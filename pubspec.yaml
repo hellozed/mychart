@@ -29,6 +29,7 @@ dependencies:
   shared_preferences: '>=0.5.7+3   <2.0.0'
   device_info: '^0.4.2+4' 
   event_bus: ^1.1.0
+  path_provider: ^1.6.14
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
