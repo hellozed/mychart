@@ -47,9 +47,11 @@ class ChartLog {
   }
 
   delete() async {
-    print("file deleted.");
     await file.delete();
+    print("file deleted.");
+
     await file.create();
+    sink = file.openWrite(mode: FileMode.writeOnlyAppend, encoding: utf8);
     print("file re-recreated.");
   }
 
@@ -66,7 +68,7 @@ class ChartLog {
     }
 
     int fileSize = await file.length();
-    //print('history file size = $fileSize');
+    print('history file size = $fileSize, read len:$length, offset:$offsetFromEOF');
 
     /* 
       File: 
@@ -79,6 +81,7 @@ class ChartLog {
       readStream = file.openRead(0, offsetFromEOF);
     else
       readStream = file.openRead(
-          fileSize - offsetFromEOF - length + 1, fileSize - offsetFromEOF);
+          (fileSize - 1) - offsetFromEOF - length + 1, //start
+          (fileSize - 1) - offsetFromEOF); //end
   }
 }

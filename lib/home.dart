@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +20,8 @@ import 'file.dart';
  * but the speed is slower. 
  * https://github.com/imaNNeoFighT/fl_chart/blob/master/example/lib/line_chart/samples/line_chart_sample1.dart
  * 
+ * Tool for generate GUI
+ * https://flutterstudio.app
  * ----------------------------------------------------------------------------*/
 
 //data represent each sample point on the linear data type.
@@ -46,25 +47,22 @@ class LiveLineChart extends StatefulWidget {
   _LiveLineChartState createState() => _LiveLineChartState();
 }
 
-class _LiveLineChartState extends State<LiveLineChart> with WidgetsBindingObserver{
-  
+class _LiveLineChartState extends State<LiveLineChart>
+    with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     installEventListener(MyEventId.bluetoothOff, showBluetoothOffDialog);
 
     return Scaffold(
-      appBar: AppBar( // app title
+      appBar: AppBar(
+          // app title
           title: Text(
             widget.title,
-            style: TextStyle(
-              fontSize: 18.0,
-            ),
+            style: Theme.of(context).textTheme.headline6,
           ),
-          leading: Icon(Icons.menu),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.account_circle), onPressed: () => {})
+            IconButton(icon: Icon(Icons.account_circle), onPressed: () {}),
           ]),
-
       body: Center(
         child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -79,14 +77,51 @@ class _LiveLineChartState extends State<LiveLineChart> with WidgetsBindingObserv
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      myChartBlock(DataSource.ecg, "ECG", 1, context),  // show ecg chart
-                      myChartBlock(DataSource.ppg, "PPG", 1, context),  // show ppg chart
+                      myChartBlock(
+                          DataSource.ecg, "ECG", 1, context), // show ecg chart
+                      myChartBlock(
+                          DataSource.ppg, "PPG", 1, context), // show ppg chart
                     ]),
               ),
 
               //right column
               numStreamBuilder(), // show serveral vital sign numbers
             ]),
+      ),
+      drawer: Drawer(
+        // Add a ListView to the drawer. This ensures the user can scroll
+        // through the options in the drawer if there isn't enough vertical
+        // space to fit everything.
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              child: Text('Settings'),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+            ),
+            ListTile(
+              title: Text('Delete History'),
+              onTap: () {
+                // delete history file of ecg
+                chartLog.delete();
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('More Settings'),
+              onTap: () {
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -104,16 +139,17 @@ class _LiveLineChartState extends State<LiveLineChart> with WidgetsBindingObserv
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
         print("app in inactive or paused");
-        bleStopScan();  // stop ble communication when app is not in use
+        bleStopScan(); // stop ble communication when app is not in use
         break;
       case AppLifecycleState.detached:
         print("app in detached");
         break;
     }
   }
-  
+
   @override
-  void dispose() async {  // when this page is off, turn off ble streams
+  void dispose() async {
+    // when this page is off, turn off ble streams
     ppgStreamController.close();
     ecgStreamController.close();
     numStreamController.close();
@@ -126,7 +162,7 @@ class _LiveLineChartState extends State<LiveLineChart> with WidgetsBindingObserv
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
- 
+
   // dialog
   Future<bool> showBluetoothOffDialog() {
     return showDialog<bool>(
@@ -149,7 +185,6 @@ class _LiveLineChartState extends State<LiveLineChart> with WidgetsBindingObserv
   }
 }
 
-
 class VitalNumbers {
   int sPo2;
   double temperature;
@@ -168,11 +203,14 @@ class VitalNumbers {
     clear();
   }
 }
+
 //----------------------------------
 // stream definations
 //----------------------------------
-const ppgChartDataSize = 100; // each ppg chart display so many samples (sample rate 25sps)
-const ecgChartDataSize = 125 * 4; // each ecg chart display so many samples (sample rate 125 sps)
+const ppgChartDataSize =
+    100; // each ppg chart display so many samples (sample rate 25sps)
+const ecgChartDataSize =
+    125 * 4; // each ecg chart display so many samples (sample rate 125 sps)
 
 StreamController<VitalNumbers> numStreamController;
 StreamController<List<int>> ppgStreamController, ecgStreamController;
@@ -195,11 +233,12 @@ StreamBuilder<VitalNumbers> numStreamBuilder() {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                myTextBlock(snapshot.data.heartRate.toString(), "HR", 15),
                 myTextBlock(
-                    snapshot.data.temperature.toStringAsFixed(1), "TEMP", 15),
-                myTextBlock(snapshot.data.sPo2.toString(), "SpO2", 15),
-                myBatteryBlock(snapshot.data.battery.toString(), 4),
+                    snapshot.data.heartRate.toString(), "HR", 15, context),
+                myTextBlock(snapshot.data.temperature.toStringAsFixed(1),
+                    "TEMP", 15, context),
+                myTextBlock(snapshot.data.sPo2.toString(), "SpO2", 15, context),
+                myBatteryBlock(snapshot.data.battery.toString(), 4, context),
               ]),
         );
       });
@@ -243,7 +282,11 @@ StreamBuilder<List<int>> myStreamBuilder(DataSource dataSource) {
           ),
         ];
         if (snapshot.data != null) {
-          convertToChartData(snapshot.data, ppg2, ppg_tx_size * 2 + 2, dataSource,
+          convertToChartData(
+              snapshot.data,
+              ppg2,
+              ppg_tx_size * 2 + 2,
+              dataSource,
               (dataSource == DataSource.ppg) ? ppgChartData : ecgChartData);
         }
         return Padding(
@@ -259,54 +302,49 @@ StreamBuilder<List<int>> myStreamBuilder(DataSource dataSource) {
 //----------------------------------
 // block for display chart
 //----------------------------------
-Expanded myChartBlock(DataSource dataSource, String myText, int myFlex, BuildContext context) {
+Expanded myChartBlock(
+    DataSource dataSource, String myText, int myFlex, BuildContext context) {
   return Expanded(
-    flex: myFlex, 
-    child: GestureDetector(
-      child:Container(
-        color: mainBackgroundColor,
-        margin: EdgeInsets.all(1.0), //outside
-        padding: const EdgeInsets.all(0.0),
-        alignment: Alignment.centerLeft,
+      flex: myFlex,
+      child: GestureDetector(
+        child: Container(
+          color: mainBackgroundColor,
+          margin: EdgeInsets.all(1.0), //outside
+          padding: const EdgeInsets.all(0.0),
+          alignment: Alignment.centerLeft,
 
-        child: Stack(
-          alignment: Alignment.topLeft,
-          children: <Widget>[
-            //chart
-            Positioned(
-              child:myStreamBuilder(dataSource),
-            ),
+          child: Stack(
+            alignment: Alignment.topLeft,
+            children: <Widget>[
+              //chart
+              Positioned(
+                child: myStreamBuilder(dataSource),
+              ),
 
-            //text
-            Positioned(
-              bottom: 25.0,
-              right: 10.0,
-              child: Text(
-                myText.toString(),
-                style: TextStyle(
-                  fontSize: 20.0,
-                  color: mySmallTextColor,
-                  fontWeight: FontWeight.w600,
+              //text
+              Positioned(
+                bottom: 25.0,
+                right: 10.0,
+                child: Text(
+                  myText.toString(),
+                  style: Theme.of(context).textTheme.headline5,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      //onTap: ()=>navigatorToHistoryPage(), this does not work due to "stack"
-      onDoubleTap: () => navigatorToHistoryPage(), 
-      onLongPress: () => navigatorToHistoryPage(), 
-  ));
+        //onTap: ()=>navigatorToHistoryPage(), this does not work due to "stack"
+        onDoubleTap: () => navigatorToHistoryPage(),
+        onLongPress: () => navigatorToHistoryPage(),
+      ));
 }
 
 //----------------------------------
 // block for display text block
 //----------------------------------
-// pre-defined theme parameters
-const myBigTextColor = Color(0xFF3dbd2e);
-const mySmallTextColor = Color(0xFF3dbd2e);
 
-Expanded myTextBlock(String bigText, String smallText, int myFlex) {
+Expanded myTextBlock(
+    String bigText, String smallText, int myFlex, BuildContext context) {
   return Expanded(
     flex: myFlex,
     child: Container(
@@ -326,11 +364,7 @@ Expanded myTextBlock(String bigText, String smallText, int myFlex) {
             left: 8,
             child: Text(
               bigText.toString(),
-              style: TextStyle(
-                fontSize: 45,
-                color: myBigTextColor,
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.headline4,
             ),
           ),
 
@@ -340,11 +374,7 @@ Expanded myTextBlock(String bigText, String smallText, int myFlex) {
             right: 5,
             child: Text(
               smallText.toString(),
-              style: TextStyle(
-                fontSize: 25,
-                color: mySmallTextColor,
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.headline5,
             ),
           ),
         ],
@@ -353,7 +383,7 @@ Expanded myTextBlock(String bigText, String smallText, int myFlex) {
   );
 }
 
-Expanded myBatteryBlock(String bigText, int myFlex) {
+Expanded myBatteryBlock(String bigText, int myFlex, BuildContext context) {
   return Expanded(
     flex: myFlex,
     child: Container(
@@ -372,11 +402,7 @@ Expanded myBatteryBlock(String bigText, int myFlex) {
             left: 5,
             child: Text(
               (bigText + "%").toString(),
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.grey,
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.headline5,
             ),
           ),
 

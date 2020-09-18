@@ -42,6 +42,30 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+          
+        // default brightness and colors
+        brightness: Brightness.dark,
+        primaryColor: Colors.lightBlue[800],
+        accentColor: Colors.cyan[600],
+
+        // default font family
+        fontFamily: 'Roboto',
+
+        // default TextTheme
+        textTheme: TextTheme(
+          headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+
+          // used as big screen text  
+          headline4: TextStyle(fontSize: 45.0, color: Color(0xFF3dbd2e),fontWeight: FontWeight.w600),
+          // used as small screen text  
+          headline5: TextStyle(fontSize: 18.0, color: Color(0xFF3dbd2e),fontWeight: FontWeight.w600),
+          // used as screen title
+          headline6: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+
+          //bodyText1: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600),
+
+        ),
+
       ),
       home: LiveLineChart(title: 'Home ICU'),
     );

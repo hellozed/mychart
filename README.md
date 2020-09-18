@@ -1,32 +1,34 @@
-# Developing Status
-This project is still in very the early development stage for putting all kinds of charts, Bluetooth libraries, and user interfaces together. 
-
 # Mychart 
-mychart is the base station software for HomeICU.
+mychart is the base station software for HomeICU. HomeICU device measures the vital signs and sends the measurement data to the base station through Bluetooth (BLE).
 
-HomeICU device measures the vital signs and sends the measurement data to the base station through Bluetooth (BLE).
+The Base Station hardware can be an iPhone/Android phone/iPad which runs mychart app to display the patient's vital sign data on the screen. 
 
-The Base Station uses an iPhone/Android phone/iPad to run a GUI app to display the patient's vital sign data on the screen. 
+The Base Station will upload the patient data to the remote cloud server (Amazon IoT cloud) and enable doctors to review their vital sign measurement and ECG charts over the internet.
 
-The Base Station can upload the data to the remote cloud server and let the doctor view vital sign measurement and ECG charts over the internet.
+# Features Under Development
+* To use MQTT to upload patient data to the Amazon IoT cloud. The sensor hardware can connect to the Internet directly through Wifi, but it will cost more battery life.
+* Improve GUI and user setting feature.
 
-## The Hardeware
-The sensor board hardware project is hosted at https://github.com/digimint/homeicu.
+# Development Platform
 
-# Developing Platform
+##  Hardware
+The sensor board hardware project is hosted at https://github.com/hellozed/homeicu, it includes all schematic design and source codes.
 
-"Mychart" is developed with Flutter and the programming language is Dart. The same copy of source code can support iPhone, iPad, and Android phones.
+## Language
 
-# Library
+"Mychart" is developed with Flutter and the programming language is Dart. The same source code can support iPhone, iPad, and Android phones.
 
-The customized code library/packages are listed in "pubspec.yaml" and can be installed from the command line "flutter packages get", and VSCode can install them automatically by extensions, no need to run that command.
+## Library
+
+mychart project uses several 3rd party code library/packages, all of them are with an open-source license. These lib codes are managed by "pubspec.yaml" and can be installed from the command line "flutter packages get", and VSCode can install them automatically by extensions, no need to run that command.
 
 - fl_chart : graphic chart display
 - charts_flutter : graphic chart display by Google
 - shared_preferences : configuration storage 
 - flutter_blue : a Bluetooth plugin for Flutter. [Link](https://pub.dev/packages/flutter_blue)
+- event_bus : for system event management.
+- path_provider : for file directory access.
 
-# Getting Started with Flutter
 
 ## Flutter Install: [link](https://flutter.dev/docs/get-started/install/macos)
 
@@ -41,17 +43,17 @@ The customized code library/packages are listed in "pubspec.yaml" and can be ins
 > cd my_app 
 > flutter run
 
-Notes: Do not delete .git from flutter installation folder.
+Notes: Do not delete .git from the Flutter installation folder.
 
-# Programming Tools
-The project needs the "Xcode" for code compiling for iOS, and VSCode for editing. After installing VSCode, you need install extensions: "Awesome flutter Snippets", "Dart", and "Material Icon Theme".
+## Complier
+The project needs the "Xcode" software for code compiling for iOS, and VSCode for editing. After installing VSCode, you need install extensions: "Awesome flutter Snippets", "Dart", and "Material Icon Theme".
 
 Online tools for generating code for widget:
 https://flutterstudio.app
 
 ## How to build the code
 The modules and libraries used in the project are managed by "pubspec.yaml" file. 
-Open a terminal run, or in the VSCode F1,
+Open a terminal to run it, or in the VSCode, press F1,
 excute the command line below:
 1. "flutter pub get" - install required modules
 2. "flutter run release" - build and install binary to phone
@@ -73,8 +75,7 @@ Or, "Command+Shift+P" in the VS Code terminal.
 - [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
-
-# Alternative Solutions
+# Alternative Platform
 
 ## Processing [Link](https://processing.org) 
 An open-source graphical library and IDE for the electronic arts, new media art, and visual design,  teach non-programmers the fundamentals of computer programming in a visual context. 
@@ -91,4 +92,4 @@ Python GUI is easy and cross-platform for desktop, but not a good solution for i
 
 # License
 
-This projectt is open-source and licensed under [MIT License](http://opensource.org/licenses/MIT)
+This **project****** is open-source and licensed under [MIT License](http://opensource.org/licenses/MIT)

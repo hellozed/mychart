@@ -4,14 +4,16 @@ import 'package:flutter/material.dart';
 import 'file.dart';
 import 'main.dart';
 import 'home.dart';
+
+//FIXME: 
+//log ppg, temperature with time.
+
 /* ----------------------------------------------------------------------------
  * display chart from the history file in the disk
  * 
  * use stream to read the file, because log file might be too big. 
  * ----------------------------------------------------------------------------*/
 
-const mainBackgroundColor = Colors.black;
-const mySmallTextColor = Color(0xFF3dbd2e);
 
 List<ChartData> historyChartData = [];
 
@@ -75,7 +77,7 @@ class _HistoryChartState extends State<HistoryChart> {
   //----------------------------------
   StreamBuilder<List<int>> myChartBuilder() {
     // load chart data
-    chartLog.readFile(historyChartSize, chartForwardOffset);
+    chartLog.readFile(historyChartSize, chartForwardOffset);  //FIXME: the first graphic is empty
 
     List<charts.Series<ChartData, num>> series1 = [];
 
@@ -100,6 +102,7 @@ class _HistoryChartState extends State<HistoryChart> {
           if (snapshot.data != null) {
             List<int> ix = [];
             ix = snapshot.data;
+            //print("stream: $ix");
             if (ix.length > 0) {
               int i = 0;
               historyChartData.clear();
@@ -140,16 +143,11 @@ class _HistoryChartState extends State<HistoryChart> {
 
               //text
               Positioned(
-                bottom: 25.0,
-                right: 10.0,
+                top: 30.0,
+                left: 30.0,
                 child: Text(
-                  "ECG",
-                  //myText.toString(),
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: mySmallTextColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  "ECG History",
+                  style: Theme.of(context).textTheme.headline5,
                 ),
               ),
             ],
@@ -159,7 +157,7 @@ class _HistoryChartState extends State<HistoryChart> {
           var xPercent = details.globalPosition.dx / screenXmax; // 0%~ 100%
           var yPercent = details.globalPosition.dy / screenYmax;
 
-          print("pan: $xPercent $yPercent");
+          //print("pan: $xPercent $yPercent");
 
           // on the x axis
           if ((yPercent > 0.30) && (yPercent < 0.7)) {
