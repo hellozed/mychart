@@ -1,33 +1,50 @@
-# Mychart 
-mychart is the base station software for HomeICU. HomeICU device measures the vital signs and sends the measurement data to the base station through Bluetooth (BLE).
+# MyChart - base station for Remote COVID-19 Patient Monitor
 
-The Base Station hardware can be an iPhone/Android phone/iPad which runs mychart app to display the patient's vital sign data on the screen. 
+* **The project website:** [www.homeicu.ca](http://homeicu.ca/)
+* **firmware:** [github.com/hellozed/homeicu](https://github.com/hellozed/homeicu)
+* **base station:** [github.com/hellozed/mychart](https://github.com/hellozed/mychart)
 
-The Base Station will upload the patient data to the remote cloud server (Amazon IoT cloud) and enable doctors to review their vital sign measurement and ECG charts over the internet.
 
+MyChart is the base station software for HomeICU, a remote COVID-19 patient monitor system. HomeICU sensor device measures the vital signs and sends the measurement data to the base station through Bluetooth (BLE).
+
+The Base Station hardware could be an iPhone/Android phone/iPad which runs this app to display the patient's vital sign data on the screen. 
+
+The Base Station will upload the patient data to the remote IoT cloud and enable doctors to review the patient's vital sign measurement and ECG charts over the internet.
+
+# Completed Development
+1. basic GUI
+2. BLE communication
+3. ECG and PPG chart
+4. vital sign display
+5. history data storage
+6. above features tested on iOS
+ 
 # Features Under Development
-* To use MQTT to upload patient data to the Amazon IoT cloud. The sensor hardware can connect to the Internet directly through Wifi, but it will cost more battery life.
-* Improve GUI and user setting feature.
+
+1. To use MQTT to upload patient data to the IoT cloud. The sensor hardware can connect to the Internet directly through Wi-Fi, but it will cost more battery life.
+2. Firebase implementations.
+3. Improve GUI.
+4. run tests on Android.
 
 # Development Platform
 
-##  Hardware
+## Hardware
 The sensor board hardware project is hosted at https://github.com/hellozed/homeicu, it includes all schematic design and source codes.
 
 ## Language
 
-"Mychart" is developed with Flutter and the programming language is Dart. The same source code can support iPhone, iPad, and Android phones.
+"MyChart" is developed with Flutter and the programming language is Dart. The same source code support both iOS and Android phones.
 
 ## Library
 
-mychart project uses several 3rd party code library/packages, all of them are with an open-source license. These lib codes are managed by "pubspec.yaml" and can be installed from the command line "flutter packages get", and VSCode can install them automatically by extensions, no need to run that command.
+MyChart project uses several 3rd party code library/packages, all of them are with an open-source license. These lib codes are managed by "pubspec.yaml" and can be installed from the command line "flutter packages get", and VSCode can install them automatically by extensions, no need to run that command.
 
 - fl_chart : graphic chart display
 - charts_flutter : graphic chart display by Google
 - shared_preferences : configuration storage 
 - flutter_blue : a Bluetooth plugin for Flutter. [Link](https://pub.dev/packages/flutter_blue)
-- event_bus : for system event management.
-- path_provider : for file directory access.
+- event_bus: for system event management.
+- path_provider: for file directory access.
 
 
 ## Flutter Install: [link](https://flutter.dev/docs/get-started/install/macos)
@@ -45,19 +62,23 @@ mychart project uses several 3rd party code library/packages, all of them are wi
 
 Notes: Do not delete .git from the Flutter installation folder.
 
-## Complier
-The project needs the "Xcode" software for code compiling for iOS, and VSCode for editing. After installing VSCode, you need install extensions: "Awesome flutter Snippets", "Dart", and "Material Icon Theme".
+## Compiler
+
+The project needs the "Xcode" software for code compiling the iOS app, and the Visual Studio Code (VSCode) for editing. After installing VSCode, you need install extensions: "Awesome flutter Snippets", "Dart", and "Material Icon Theme".
 
 Online tools for generating code for widget:
 https://flutterstudio.app
 
 ## How to build the code
-The modules and libraries used in the project are managed by "pubspec.yaml" file. 
-Open a terminal to run it, or in the VSCode, press F1,
-excute the command line below:
+
+The modules and libraries used in the project are managed by the "pubspec.yaml" file. 
+
+Open a terminal to run it or in the VSCode, press F1,
+execute the command line below:
+
 1. "flutter pub get" - install required modules
 2. "flutter run release" - build and install binary to phone
-   
+ 
 ## How to run the code
 
 The program entry point is "lib/main.dart".
@@ -77,19 +98,15 @@ Or, "Command+Shift+P" in the VS Code terminal.
 
 # Alternative Platform
 
-## Processing [Link](https://processing.org) 
-An open-source graphical library and IDE for the electronic arts, new media art, and visual design,  teach non-programmers the fundamentals of computer programming in a visual context. 
+1. Processing [Link](https://processing.org) 
+An open-source graphical library and IDE for the electronic arts, new media art, and visual design, teach non-programmers the fundamentals of computer programming in a visual context. But the app file generated by "Processing" is too large (>250M).
 
-But the app file generated by "Processing" is too large (>250M).
+2. QT
+Qt is a free and open-source widget toolkit for creating cross-platform GUI applications that run on platforms such as Linux, Windows, macOS, Android, or embedded systems. We gave up on the "Qt" solution because this project does not need a desktop app. 
 
-## QT
-Qt is a free and open-source widget toolkit for creating cross-platform GUI applications that run on platforms such as Linux, Windows, macOS, Android or embedded systems.
-
-We gave up on "Qt" because this project does not need a desktop app. 
-
-## Python
+3. Python
 Python GUI is easy and cross-platform for desktop, but not a good solution for iOS and Android.
 
 # License
 
-This **project****** is open-source and licensed under [MIT License](http://opensource.org/licenses/MIT)
+This project is open-source and licensed under [MIT License](http://opensource.org/licenses/MIT)
